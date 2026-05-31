@@ -34,9 +34,9 @@ class BPETokenizer:
 
     def __init__(self, vocab_size: int = 3000):
         self.vocab_size = vocab_size
-        self.id_to_token = {}
-        self.token_to_id = {}
-        self.merges = []
+        self.id_to_token = {} # token ID로 실제 token을 찾는 사전
+        self.token_to_id = {} # 실제 token으로 token ID를 찾는 사전
+        self.merges = [] # 학습된 merge 규칙을 순서대로 저장하는 리스트
 
     def _init_special_tokens(self):
         """
@@ -79,7 +79,40 @@ class BPETokenizer:
         - 새 token ID를 만들고, 시퀀스의 해당 pair를 새 ID로 치환합니다.
         - `self.merges`, `self.id_to_token`, `self.token_to_id`를 갱신합니다.
         """
-        raise NotImplementedError("BPETokenizer.train을 구현하세요.")
+        # 기본 vocab을 준비하고 corpus를 byte token ID 시퀀스로 바꿉니다.
+        self._init_special_tokens()
+        ids = [byte_value + BYTE_OFFSET for byte_value in corpus.encode("utf-8")]
+
+        while len(self.id_to_token) < self.vocab_size:
+            # 인접한 token pair의 등장 횟수를 셉니다.
+            counts = {}
+            for i in range(len(ids) - 1):
+                pair = (ids[i], ids[i+1])
+                counts[pair] = counts.get(pair, 0) + 1 # 처음 나온 pair는 0에서 시작해 1 증가
+            
+            if not counts: # counts가 비어있으면
+                break
+
+            best_pair = max(counts, key=lambda x: counts[x]) # 가장 많은 pair
+
+            # 가장 자주 나온 pair를 새 merge token으로 등록합니다.
+            new_id = len(self.id_to_token)
+            self.id_to_token[new_id] = best_pair
+            self.token_to_id[best_pair] = new_id
+            self.merges.append(best_pair)
+
+            # 시퀀스 안의 best_pair를 새 token ID로 치환합니다.
+            a, b = best_pair
+            result = []
+            i = 0
+            while i < len(ids):
+                if i < len(ids) - 1 and ids[i] == a and ids[i+1] == b:
+                    result.append(new_id)
+                    i += 2
+                else:
+                    result.append(ids[i])
+                    i += 1
+            ids = result
 
     def save(self, path: str | Path):
         """
