@@ -23,23 +23,28 @@ class GPTDataset(Dataset):
         self.token_ids = token_ids
         self.context_length = context_length
         self.stride = stride if stride is not None else context_length
-        # TODO: 만들 수 있는 학습 샘플 개수를 self._length에 저장하세요.
-        raise NotImplementedError("GPTDataset.__init__에서 self._length를 구현하세요.")
+        # 마지막 target 토큰까지 필요하므로 context_length보다 토큰 1개가 더 있어야 합니다.
+        self._length = (len(self.token_ids) - self.context_length - 1) // self.stride + 1
 
     def __len__(self) -> int:
-        """TODO: 전체 샘플 개수를 반환합니다."""
-        raise NotImplementedError("GPTDataset.__len__을 구현하세요.")
+        """DataLoader가 전체 학습 샘플 수를 알 수 있게 반환합니다."""
+        return self._length
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        TODO: idx번째 input_ids와 target_ids를 LongTensor로 반환합니다.
+        idx번째 구간에서 input과 한 칸 뒤로 밀린 target을 만듭니다.
 
         Returns:
             input_ids: (context_length,)
             target_ids: (context_length,)
         """
-        raise NotImplementedError("GPTDataset.__getitem__을 구현하세요.")
+        # idx를 실제 token_ids의 시작 위치로 바꿉니다.
+        start = idx * self.stride
+        input_ids = self.token_ids[start : start + self.context_length]
+        # 다음 토큰 예측을 학습하므로 target은 input보다 한 칸 앞선 구간입니다.
+        target_ids = self.token_ids[start + 1 : start + self.context_length + 1]
 
+        return torch.tensor(input_ids, dtype=torch.long), torch.tensor(target_ids, dtype=torch.long)
 
 def create_dataloader(
     token_ids: list[int],
