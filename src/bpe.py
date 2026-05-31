@@ -8,6 +8,7 @@ UTF-8 byte-level BPE 토크나이저 과제 템플릿.
 """
 
 from pathlib import Path
+import json
 
 
 PAD_TOKEN = "<pad>"
@@ -51,8 +52,6 @@ class BPETokenizer:
             token_id = byte_value + BYTE_OFFSET # 4 ~ 259
             self.id_to_token[token_id] = bytes([byte_value])
             self.token_to_id[bytes([byte_value])] = token_id
-        
-        # raise NotImplementedError("_init_special_tokens를 구현하세요.")
 
     def get_pad_id(self):
         """padding 토큰 ID."""
@@ -85,16 +84,42 @@ class BPETokenizer:
     def save(self, path: str | Path):
         """
         TODO: vocabulary와 merge rule을 JSON 파일로 저장합니다.
-
         bytes와 tuple은 JSON에 바로 저장할 수 없으므로 type 정보를 함께 저장하세요.
         """
-        raise NotImplementedError("BPETokenizer.save를 구현하세요.")
+        # JSON은 tuple을 직접 저장하지 못하므로 merge pair를 list로 저장합니다.
+        # 기본 vocab은 load에서 다시 만들 수 있어 merges만 저장합니다.
+        data = {
+            "vocab_size" : self.vocab_size,
+            "merges" : [[a, b] for (a, b) in self.merges]
+        }
+
+        # open(파일경로, 모드, 인코딩)
+        # json.dump(저장할 데이터, 파일 객체) 
+        with open(Path(path), "w", encoding="utf-8") as f:
+            json.dump(data, f)
 
     def load(self, path: str | Path):
         """
         TODO: save()로 저장한 JSON 파일을 읽어 vocabulary와 merge rule을 복원합니다.
         """
-        raise NotImplementedError("BPETokenizer.load를 구현하세요.")
+        # 저장된 merge list를 읽고, 다시 tuple pair로 복원합니다.
+        with open(Path(path), "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        self.vocab_size = data["vocab_size"] # vocab_size 복원
+
+        # 0~3 특수 토큰, 4~259 byte token을 먼저 복원합니다.
+        self._init_special_tokens()
+
+        for pair_list in data["merges"]:
+            a = pair_list[0]
+            b = pair_list[1]
+
+            # merge 순서대로 새 token ID를 다시 부여합니다.
+            new_id = len(self.id_to_token) # 현재 vocab 크기가 새 ID
+            self.id_to_token[new_id] = (a, b)
+            self.token_to_id[(a, b)] = new_id
+            self.merges.append((a, b))
 
     def encode(self, text: str, add_bos_eos: bool = False) -> list[int]:
         """
