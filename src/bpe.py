@@ -13,8 +13,8 @@ import json
 
 PAD_TOKEN = "<pad>"
 UNK_TOKEN = "<unk>"
-BOS_TOKEN = "<bos>"
-EOS_TOKEN = "<eos>"
+BOS_TOKEN = "<bos>" # 문장 시작 토큰
+EOS_TOKEN = "<eos>" # 문장 끝 토큰
 
 SPECIAL_TOKENS = [PAD_TOKEN, UNK_TOKEN, BOS_TOKEN, EOS_TOKEN]
 SPECIAL_IDS = {token: idx for idx, token in enumerate(SPECIAL_TOKENS)}
@@ -130,7 +130,28 @@ class BPETokenizer:
         - train/load에서 얻은 merge rule을 학습 순서대로 적용합니다.
         - add_bos_eos=True이면 앞뒤에 bos/eos ID를 붙입니다.
         """
-        raise NotImplementedError("BPETokenizer.encode를 구현하세요.")
+        # 문자열을 UTF-8 byte로 바꾸고, byte token ID로 변환합니다.
+        ids = [byte_value + BYTE_OFFSET for byte_value in text.encode("utf-8")]
+
+        # 학습된 merge rule을 순서대로 적용합니다.
+        for (a, b) in self.merges:
+            new_id = self.token_to_id[(a, b)]
+            result = []
+            i = 0
+            while i < len(ids):
+                if i < len(ids) - 1 and ids[i] == a and ids[i+1] == b:
+                    result.append(new_id)
+                    i += 2
+                else:
+                    result.append(ids[i])
+                    i += 1
+            ids = result
+        
+        # 옵션이 켜져 있으면 문장 앞뒤에 BOS/EOS를 붙입니다.
+        if add_bos_eos:
+            ids = [self.get_bos_id()] + ids + [self.get_eos_id()]
+            
+        return ids
 
     def decode(self, ids: list[int], skip_special: bool = True) -> str:
         """
@@ -140,4 +161,24 @@ class BPETokenizer:
         - merge token은 원본 byte token까지 재귀적으로 펼칩니다.
         - byte를 하나씩 decode하지 말고, 마지막에 `bytes(...).decode("utf-8")`를 한 번만 호출합니다.
         """
-        raise NotImplementedError("BPETokenizer.decode를 구현하세요.")
+        # token ID를 원본 byte 조각으로 되돌립니다.
+        def _to_bytes(id):
+            token = self.id_to_token[id]
+
+            if isinstance(token, str): # 특수 토큰
+                return b""
+            if isinstance(token, bytes): # byte 토큰
+                return token
+            if isinstance(token, tuple): # merge 토큰
+                a, b = token
+                return _to_bytes(a) + _to_bytes(b) 
+        
+        # 특수 토큰은 필요하면 건너뛰고, 나머지는 byte로 이어 붙입니다.
+        all_bytes = b""
+        for id in ids:
+            if skip_special and id in (0, 1, 2, 3):
+                continue
+            all_bytes += _to_bytes(id)
+        
+        # UTF-8 decode는 마지막에 한 번만 수행합니다.
+        return all_bytes.decode("utf-8")
