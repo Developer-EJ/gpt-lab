@@ -173,7 +173,7 @@ class BPETokenizer:
                 a, b = token
                 return _to_bytes(a) + _to_bytes(b) 
         
-        # 특수 토큰은 필요하면 건너뛰고, 나머지는 byte로 이어 붙입니다.
+        # skip_special=True이면 특수 토큰을 건너뛰고, 나머지는 byte로 이어 붙입니다.
         all_bytes = b""
         for id in ids:
             if skip_special and id in (0, 1, 2, 3):
