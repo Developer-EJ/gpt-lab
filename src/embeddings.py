@@ -43,4 +43,13 @@ class InputEmbedding(nn.Module):
         Returns:
             (batch_size, seq_len, emb_dim)
         """
-        raise NotImplementedError("InputEmbedding.forward를 구현하세요.")
+        # token ID를 embedding vector로 바꿉니다.
+        token_emb = self.token_embedding(x)
+
+        # 현재 sequence 길이만큼 position ID를 만듭니다.
+        seq_len = x.shape[1]
+        positions = torch.arange(seq_len, device=x.device)
+        pos_emb = self.position_embedding(positions)
+
+        # token 정보와 위치 정보를 더한 뒤 dropout을 적용합니다.
+        return self.dropout(token_emb + pos_emb)
