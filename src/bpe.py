@@ -33,6 +33,7 @@ class BPETokenizer:
     """
 
     def __init__(self, vocab_size: int = 3000):
+        # 학습할 vocabulary 크기와 token ID 변환 사전을 준비합니다.
         self.vocab_size = vocab_size
         self.id_to_token = {} # token ID로 실제 token을 찾는 사전
         self.token_to_id = {} # 실제 token으로 token ID를 찾는 사전

@@ -20,8 +20,10 @@ class GPTDataset(Dataset):
         context_length: int,
         stride: int | None = None,
     ):
+        # token 목록과 한 샘플의 문맥 길이를 저장합니다.
         self.token_ids = token_ids
         self.context_length = context_length
+        # stride가 없으면 문맥 길이만큼 이동합니다.
         self.stride = stride if stride is not None else context_length
         # 마지막 target 토큰까지 필요하므로 context_length보다 토큰 1개가 더 있어야 합니다.
         self._length = (len(self.token_ids) - self.context_length - 1) // self.stride + 1
