@@ -24,10 +24,14 @@ class InputEmbedding(nn.Module):
         drop_rate: float = 0.1,
     ):
         super().__init__()
+        # forward에서 사용할 임베딩 차원과 최대 문맥 길이를 저장합니다.
         self.emb_dim = emb_dim
         self.context_length = context_length
         # TODO: token_embedding, position_embedding, dropout을 정의하세요.
-        raise NotImplementedError("InputEmbedding.__init__을 구현하세요.")
+        self.token_embedding = nn.Embedding(vocab_size, emb_dim)
+        self.position_embedding = nn.Embedding(context_length, emb_dim)
+        # embedding 합산 결과에 dropout을 적용합니다.
+        self.dropout = nn.Dropout(drop_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
