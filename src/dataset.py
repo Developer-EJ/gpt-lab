@@ -24,10 +24,10 @@ class GPTDataset(Dataset):
         self.context_length = context_length
         self.stride = stride if stride is not None else context_length
         # TODO: 만들 수 있는 학습 샘플 개수를 self._length에 저장하세요.
-        if len(token_ids) < countext_length + 1:
+        if len(token_ids) < context_length + 1:
             self._length = 0
         else:
-            self._length = (len(token_ids)) - context_length - 1) // self.stride + 1
+            self._length = (len(token_ids) - context_length - 1) // self.stride + 1
 
         # raise NotImplementedError("GPTDataset.__init__에서 self._length를 구현하세요.")
 
@@ -80,7 +80,7 @@ def create_dataloader(
         batch_size = batch_size,
         shuffle = shuffle,
         drop_last = drop_last,
-        num_worker = num_workers,
+        num_workers = num_workers,
     )
 
     raise NotImplementedError("create_dataloader를 구현하세요.")
