@@ -58,14 +58,17 @@ class MultiHeadAttention(nn.Module):
         k = self.k_proj(x)
         v = self.v_proj(x)
 
+        # head별로 독립적인 attention을 계산하기 위해 embedding 차원을 n_heads개로 나눕니다.
         q = q.view(batch_size, seq_len, self.n_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.n_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.n_heads, self.head_dim).transpose(1, 2)
 
+        # dot-product score는 head_dim이 커질수록 값이 커지므로 sqrt(head_dim)으로 스케일링합니다.
         scores = q @ k.transpose(-2, -1)
         scores = scores / (self.head_dim**0.5)
 
         if causal_mask:
+            # GPT는 autoregressive 모델이므로 현재 위치가 미래 토큰을 보지 못하게 상삼각을 가립니다.
             mask = torch.triu(
                 torch.ones(seq_len, seq_len, dtype=torch.bool, device=x.device),
                 diagonal=1,
@@ -75,6 +78,7 @@ class MultiHeadAttention(nn.Module):
         attn_weights = F.softmax(scores, dim=-1)
         attn_weights = self.dropout(attn_weights)
 
+        # attention 결과를 다시 (B, T, C)로 합쳐 다음 block이 같은 shape를 받게 합니다.
         out = attn_weights @ v
         out = out.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         out = self.out_proj(out)

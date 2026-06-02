@@ -26,6 +26,7 @@ class LayerNorm(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: 마지막 차원의 평균과 분산으로 정규화한 뒤 gamma/beta를 적용합니다."""
+        # 각 token의 hidden vector 내부에서만 평균/분산을 구해 batch와 sequence 구조는 유지합니다.
         mean = x.mean(dim=-1, keepdim=True)
         variance = x.var(dim=-1, keepdim=True, unbiased=False)
         normed = (x - mean) / torch.sqrt(variance + self.eps)
@@ -100,6 +101,7 @@ class GPTModel(nn.Module):
         drop_rate = config.get("drop_rate", 0.1)
         qkv_bias = config.get("qkv_bias", False)
 
+        # config 값만 바꾸면 작은 smoke 모델부터 더 큰 실험 모델까지 같은 코드로 만들 수 있습니다.
         self.embedding = InputEmbedding(vocab_size, emb_dim, context_length, drop_rate=drop_rate)
         self.blocks = nn.ModuleList(
             [
@@ -118,6 +120,7 @@ class GPTModel(nn.Module):
     def forward_hidden(self, idx: torch.Tensor) -> torch.Tensor:
         """토큰 ID를 GPT backbone hidden state로 변환합니다."""
         x = self.embedding(idx)
+        # 여러 TransformerBlock을 통과한 마지막 hidden state가 LM/분류 head의 공통 입력입니다.
         for block in self.blocks:
             x = block(x, causal_mask=True)
         return self.final_norm(x)
@@ -140,6 +143,7 @@ class GPTModel(nn.Module):
         if targets is None:
             return logits
 
+        # F.cross_entropy는 (N, C) logits와 (N,) target을 기대하므로 batch/sequence 축을 펼칩니다.
         loss = F.cross_entropy(
             logits.reshape(-1, logits.size(-1)),
             targets.reshape(-1),
@@ -155,10 +159,12 @@ def generate_text_simple(
 ) -> torch.Tensor:
     """TODO: greedy 방식으로 max_new_tokens만큼 다음 토큰을 이어 붙입니다."""
     for _ in range(max_new_tokens):
+        # context window보다 긴 prefix가 들어오면 마지막 context_size 토큰만 모델에 넣습니다.
         idx_cond = idx[:, -context_size:]
         with torch.no_grad():
             logits = model(idx_cond)
         next_token_logits = logits[:, -1, :]
+        # greedy 생성은 마지막 위치의 vocab logits에서 가장 큰 token ID를 그대로 선택합니다.
         idx_next = torch.argmax(next_token_logits, dim=-1, keepdim=True)
         idx = torch.cat((idx, idx_next), dim=1)
     return idx

@@ -20,6 +20,7 @@ def calc_loss_batch(
     device: torch.device,
 ) -> torch.Tensor:
     """TODO: 한 배치를 device로 옮긴 뒤 다음 토큰 예측 cross entropy loss를 계산합니다."""
+    # 학습/평가 모두 같은 helper를 쓰기 위해 batch를 여기서 한 번에 device로 옮깁니다.
     input_batch = input_batch.to(device)
     target_batch = target_batch.to(device)
     loss, _ = model(input_batch, targets=target_batch)
@@ -41,6 +42,7 @@ def calc_loss_loader(
     losses = []
     max_batches = len(data_loader) if num_batches is None else min(num_batches, len(data_loader))
 
+    # validation loss 계산은 gradient가 필요 없으므로 메모리와 시간을 아끼기 위해 no_grad를 사용합니다.
     with torch.no_grad():
         for batch_idx, (input_batch, target_batch) in enumerate(data_loader):
             if batch_idx >= max_batches:
@@ -64,6 +66,7 @@ def save_checkpoint(
     """TODO: model/optimizer 상태, epoch, global_step을 torch.save로 저장합니다."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    # optimizer와 진행 위치를 함께 저장해야 Colab 런타임 재시작 후 같은 지점에서 이어서 학습할 수 있습니다.
     torch.save(
         {
             "model_state_dict": model.state_dict(),
@@ -84,6 +87,7 @@ def load_checkpoint(
     """TODO: torch.load로 checkpoint를 읽어 model/optimizer 상태를 복원합니다."""
     checkpoint = torch.load(path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
+    # 추론 용도로 불러올 때는 optimizer가 없을 수 있으므로 선택적으로 복원합니다.
     if optimizer is not None and "optimizer_state_dict" in checkpoint:
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     return int(checkpoint.get("epoch", 0)), int(checkpoint.get("global_step", 0))
@@ -100,12 +104,14 @@ def generate(
 ) -> torch.Tensor:
     """TODO: temperature와 top-k 샘플링을 지원하는 생성 함수를 구현합니다."""
     for _ in range(max_new_tokens):
+        # 학습 때 본 최대 길이를 넘지 않도록 최근 context_size 토큰만 조건으로 사용합니다.
         idx_cond = idx[:, -context_size:]
         with torch.no_grad():
             logits = model(idx_cond)
         logits = logits[:, -1, :]
 
         if top_k is not None:
+            # top-k 밖의 token은 -inf로 막아 softmax 이후 선택될 확률을 0으로 만듭니다.
             top_k = min(top_k, logits.size(-1))
             top_values, _ = torch.topk(logits, top_k)
             min_top_value = top_values[:, [-1]]
@@ -114,6 +120,7 @@ def generate(
         if temperature == 0:
             idx_next = torch.argmax(logits, dim=-1, keepdim=True)
         else:
+            # temperature가 낮을수록 높은 logit에 더 몰리고, 높을수록 더 다양한 token을 샘플링합니다.
             logits = logits / temperature
             probs = F.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)
@@ -178,6 +185,7 @@ def train_model(
         epoch_losses = []
 
         for input_batch, target_batch in train_loader:
+            # 표준 PyTorch 학습 순서: gradient 초기화 -> forward/loss -> backward -> optimizer step.
             optimizer.zero_grad()
             loss = calc_loss_batch(input_batch, target_batch, model, device)
             loss.backward()
@@ -190,6 +198,7 @@ def train_model(
                 calc_loss_loader(val_loader, model, device, num_batches=eval_iter)
 
             if ckpt_freq and global_step % ckpt_freq == 0:
+                # 긴 학습 중간에 주기적으로 저장해 런타임 종료나 실험 중단에 대비합니다.
                 save_checkpoint(
                     model,
                     optimizer,

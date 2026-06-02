@@ -24,6 +24,7 @@ class GPTDataset(Dataset):
         self.context_length = context_length
         self.stride = stride if stride is not None else context_length
         # TODO: 만들 수 있는 학습 샘플 개수를 self._length에 저장하세요.
+        # target이 input보다 한 칸 뒤에 있으므로 한 샘플에는 context_length + 1개 토큰이 필요합니다.
         if len(token_ids) < context_length + 1:
             self._length = 0
         else:
@@ -48,6 +49,7 @@ class GPTDataset(Dataset):
         start = idx * self.stride
         end = start + self.context_length
 
+        # GPT는 현재 토큰 시퀀스로 다음 토큰을 맞히므로 target은 input을 한 칸 오른쪽으로 민 값입니다.
         input_ids = self.token_ids[start:end]
         target_ids = self.token_ids[start + 1:end + 1]
 

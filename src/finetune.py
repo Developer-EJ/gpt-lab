@@ -31,6 +31,7 @@ def make_sentiment_dataset(
     """
     def read_nsmc_tsv(path: str | Path) -> list[dict]:
         rows = []
+        # NSMC는 id/document/label TSV 형식입니다. 빈 리뷰는 학습 신호가 없으므로 제외합니다.
         for line in Path(path).read_text(encoding="utf-8").splitlines()[1:]:
             parts = line.split("\t")
             if len(parts) < 3:
@@ -43,6 +44,7 @@ def make_sentiment_dataset(
 
     train_rows = read_nsmc_tsv(train_tsv_path)
     rng = random.Random(seed)
+    # seed를 고정해 train/validation split이 매 실행마다 동일하게 나오도록 합니다.
     rng.shuffle(train_rows)
 
     val_size = int(len(train_rows) * val_ratio)
@@ -89,6 +91,7 @@ class ReviewSentimentDataset(Dataset):
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
         """TODO: text를 encode하고 max_length까지 자르거나 padding한 뒤 label과 함께 반환합니다."""
         item = self.data[idx]
+        # 분류에서도 같은 tokenizer를 사용하되, 문장 경계를 알려주기 위해 BOS/EOS를 붙입니다.
         token_ids = self.tokenizer.encode(item["text"], add_bos_eos=True)
         token_ids = token_ids[: self.max_length]
         if len(token_ids) < self.max_length:
@@ -128,6 +131,7 @@ class GPTForSequenceClassification(nn.Module):
         labels가 있으면 (loss, logits), 없으면 logits를 반환합니다.
         """
         hidden = self.gpt.forward_hidden(input_ids)
+        # padding을 제외한 마지막 유효 token의 hidden state를 리뷰 전체의 대표 벡터로 사용합니다.
         non_pad = input_ids.ne(0)
         last_token_idx = non_pad.sum(dim=1).sub(1).clamp(min=0)
         batch_idx = torch.arange(input_ids.size(0), device=input_ids.device)
@@ -154,6 +158,7 @@ def train_epoch_sentiment(
     total_count = 0
 
     for input_ids, labels in train_loader:
+        # 분류 학습은 backbone과 classifier를 함께 업데이트합니다.
         input_ids = input_ids.to(device)
         labels = labels.to(device)
 
@@ -184,6 +189,7 @@ def evaluate_sentiment(
     total_correct = 0
     total_count = 0
 
+    # 평가에서는 dropout과 gradient 계산을 끄고, 끝난 뒤 기존 train/eval 상태로 복구합니다.
     with torch.no_grad():
         for input_ids, labels in data_loader:
             input_ids = input_ids.to(device)

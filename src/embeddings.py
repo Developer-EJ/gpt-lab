@@ -47,6 +47,7 @@ class InputEmbedding(nn.Module):
 
         token_emb = self.token_embedding(x)
 
+        # 각 위치마다 같은 position ID를 batch 전체에 broadcast해서 token embedding에 더합니다.
         positions = torch.arange(seq_len, device = x.device)
         pos_emb = self.position_embedding(positions)
 

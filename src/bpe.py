@@ -87,10 +87,12 @@ class BPETokenizer:
         """
         self._init_special_tokens()
 
+        # byte-level BPE는 UTF-8 byte를 기본 토큰으로 시작하므로, 한글도 <unk> 없이 표현할 수 있습니다.
         ids = [BYTE_OFFSET + b for b in corpus.encode("utf-8")]
         next_id = BYTE_OFFSET + NUM_BYTES
 
         while len(self.id_to_token) < self.vocab_size and len(ids) >= 2:
+            # 현재 토큰 시퀀스에서 가장 자주 붙어 나오는 이웃 pair를 다음 merge 후보로 선택합니다.
             pair_counts = Counter(zip(ids, ids[1:]))
             if not pair_counts:
                 break
@@ -100,6 +102,7 @@ class BPETokenizer:
             if count < 2:
                 break
 
+            # merge 토큰은 pair 자체를 저장해 두었다가 decode 시 재귀적으로 원래 byte까지 펼칩니다.
             new_id = next_id
             next_id += 1
 
@@ -109,6 +112,7 @@ class BPETokenizer:
 
             merged = []
             i = 0
+            # 선택된 pair가 겹치지 않게 왼쪽부터 한 번에 치환합니다.
             while i < len(ids):
                 if i < len(ids) - 1 and (ids[i], ids[i + 1]) == best_pair:
                     merged.append(new_id)
@@ -127,6 +131,7 @@ class BPETokenizer:
         """
         path = Path(path)
 
+        # JSON은 bytes/tuple key를 직접 보존하지 못하므로 type 태그와 list 값으로 직렬화합니다.
         vocab_items = []
         for token_id, token in sorted(self.id_to_token.items()):
             if isinstance(token, str):
@@ -172,6 +177,7 @@ class BPETokenizer:
         self.token_to_id = {}
         self.merges = [tuple(pair) for pair in data["merges"]]
 
+        # 저장 시 붙인 type 태그를 기준으로 Python 객체를 복원하고 역방향 vocab도 같이 재구성합니다.
         for item in data["id_to_token"]:
             token_id = int(item["id"])
             token_type = item["type"]
@@ -201,6 +207,7 @@ class BPETokenizer:
         if not self.id_to_token:
             self._init_special_tokens()
 
+        # 학습 때와 같은 byte ID 표현에서 시작한 뒤, 저장된 merge rule을 순서대로 다시 적용합니다.
         ids = [BYTE_OFFSET + b for b in text.encode("utf-8")]
 
         for pair in self.merges:
@@ -236,6 +243,7 @@ class BPETokenizer:
         byte_values = []
 
         def expand(token_id: int):
+            # merge token은 pair를 가리키므로 leaf byte token이 나올 때까지 재귀적으로 펼칩니다.
             token = self.id_to_token.get(token_id)
 
             if token is None:
@@ -262,4 +270,5 @@ class BPETokenizer:
         for token_id in ids:
             expand(token_id)
 
+        # UTF-8 multi-byte 문자가 깨지지 않도록 byte 배열을 만든 뒤 마지막에 한 번만 decode합니다.
         return bytes(byte_values).decode("utf-8", errors="replace")
