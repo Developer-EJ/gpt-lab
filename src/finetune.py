@@ -172,7 +172,36 @@ def train_epoch_sentiment(
     device: torch.device,
 ) -> tuple[float, float]:
     """TODO: 감성 분류 모델을 1 epoch 훈련하고 (평균 loss, accuracy)를 반환합니다."""
-    raise NotImplementedError("train_epoch_sentiment를 구현하세요.")
+    # 학습 epoch이므로 dropout 등을 켠 train 모드로 전환합니다.
+    model.train()
+    total_loss = 0.0
+    correct = 0
+    total_examples = 0
+
+    for input_ids, labels in train_loader:
+        # batch tensor를 모델과 같은 device로 이동합니다.
+        input_ids = input_ids.to(device)
+        labels = labels.to(device)
+
+        # 분류 loss로 역전파를 수행하고 optimizer가 파라미터를 갱신합니다.
+        optimizer.zero_grad()
+        loss, logits = model(input_ids, labels=labels)
+        loss.backward()
+        optimizer.step()
+
+        # 평균 loss를 샘플 기준으로 계산하기 위해 batch 크기만큼 가중해 누적합니다.
+        batch_size = labels.size(0)
+        total_loss += loss.item() * batch_size
+        # 가장 큰 logit의 class를 예측값으로 보고 accuracy를 계산합니다.
+        predictions = torch.argmax(logits, dim=-1)
+        correct += (predictions == labels).sum().item()
+        total_examples += batch_size
+
+    if total_examples == 0:
+        return float("nan"), float("nan")
+
+    # 한 epoch 전체의 평균 loss와 정답 비율을 반환합니다.
+    return total_loss / total_examples, correct / total_examples
 
 
 def evaluate_sentiment(
@@ -181,4 +210,35 @@ def evaluate_sentiment(
     device: torch.device,
 ) -> tuple[float, float]:
     """TODO: 감성 분류 모델을 평가하고 (평균 loss, accuracy)를 반환합니다."""
-    raise NotImplementedError("evaluate_sentiment를 구현하세요.")
+    total_loss = 0.0
+    correct = 0
+    total_examples = 0
+    # 평가가 끝난 뒤 원래 학습/평가 상태로 되돌리기 위해 현재 mode를 기억합니다.
+    was_training = model.training
+
+    # 평가 중에는 dropout을 끄고 gradient를 만들지 않습니다.
+    model.eval()
+    with torch.no_grad():
+        for input_ids, labels in data_loader:
+            # batch tensor를 모델과 같은 device로 이동합니다.
+            input_ids = input_ids.to(device)
+            labels = labels.to(device)
+
+            loss, logits = model(input_ids, labels=labels)
+            batch_size = labels.size(0)
+            # 평균 loss를 샘플 기준으로 계산하기 위해 batch 크기만큼 가중해 누적합니다.
+            total_loss += loss.item() * batch_size
+            # 가장 큰 logit을 예측 class로 사용해 정답 개수를 셉니다.
+            predictions = torch.argmax(logits, dim=-1)
+            correct += (predictions == labels).sum().item()
+            total_examples += batch_size
+
+    # 호출 전 train 모드였다면 평가 후 다시 train 모드로 복구합니다.
+    if was_training:
+        model.train()
+
+    if total_examples == 0:
+        return float("nan"), float("nan")
+
+    # 전체 평가 데이터 기준 평균 loss와 accuracy를 반환합니다.
+    return total_loss / total_examples, correct / total_examples
