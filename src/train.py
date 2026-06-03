@@ -108,7 +108,43 @@ def generate(
     eos_id: int | None = None,
 ) -> torch.Tensor:
     """TODO: temperature와 top-k 샘플링을 지원하는 생성 함수를 구현합니다."""
-    raise NotImplementedError("generate를 구현하세요.")
+    # 새 토큰을 하나씩 생성해 idx 뒤에 이어 붙입니다.
+    for _ in range(max_new_tokens):
+        # 모델이 처리할 수 있는 최대 문맥 길이에 맞춰 마지막 context_size개만 사용합니다.
+        idx_cond = idx[:, -context_size:]
+
+        with torch.no_grad():
+            logits = model(idx_cond)
+
+        # 다음 토큰은 현재 sequence의 마지막 위치 logits에서만 선택합니다.
+        logits = logits[:, -1, :]
+
+        if top_k is not None:
+            # top-k를 적용하면 점수가 높은 k개 token만 후보로 남깁니다.
+            top_k_logits, _ = torch.topk(logits, top_k)
+            min_top_k_logit = top_k_logits[:, -1, None]
+            logits = torch.where(
+                logits < min_top_k_logit,
+                torch.tensor(float("-inf"), device=logits.device),
+                logits,
+            )
+
+        if temperature == 0.0:
+            # temperature 0은 확률 샘플링 없이 가장 큰 logit을 고르는 greedy decoding입니다.
+            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+        else:
+            # temperature가 높을수록 분포가 부드러워져 더 다양한 token이 뽑힐 수 있습니다.
+            logits = logits / temperature
+            probs = torch.softmax(logits, dim=-1)
+            idx_next = torch.multinomial(probs, num_samples=1)
+
+        idx = torch.cat((idx, idx_next), dim=1)
+
+        if eos_id is not None and (idx_next == eos_id).all():
+            # batch 전체가 eos_id를 생성하면 더 이상 이어 붙이지 않고 종료합니다.
+            break
+
+    return idx
 
 
 def generate_and_print_sample(
