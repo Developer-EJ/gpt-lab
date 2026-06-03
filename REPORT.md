@@ -201,22 +201,31 @@ loaded runs: 12
 ### 1. vocab_size 비교
 
 ![vocab_size 비교 결과](image.png)
-
+<br/>
+<br/>
 ### 2. Transformer layer 수 비교
+<br/>
+<br/>
 
 ![Transformer layer 수 비교 결과](image-1.png)
 
 ### 3. embedding dimension 비교
 
 ![embedding dimension 비교 결과](image-2.png)
+<br/>
+<br/>
 
 ### 4. dropout rate 비교
 
 ![dropout rate 비교 결과](image-3.png)
+<br/>
+<br/>
 
 ### 5. context length 비교
 
 ![context length 비교 결과](image-4.png)
+<br/>
+<br/>
 
 ### 6. basic base 모델 결과
 
