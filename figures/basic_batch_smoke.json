@@ -1,0 +1,31 @@
+{
+  "experiment": "Basic one-batch smoke",
+  "corpus_chars": 1379486,
+  "token_count": 805023,
+  "vocab_size": 3000,
+  "roundtrip_ok": true,
+  "context_length": 128,
+  "batch_size": 4,
+  "num_batches": 1573,
+  "batch_input_shape": [
+    4,
+    128
+  ],
+  "batch_target_shape": [
+    4,
+    128
+  ],
+  "model_config": {
+    "vocab_size": 3000,
+    "context_length": 128,
+    "emb_dim": 192,
+    "n_heads": 4,
+    "n_layers": 2,
+    "drop_rate": 0.1,
+    "qkv_bias": false
+  },
+  "num_parameters": 2065536,
+  "loss": 8.1552,
+  "elapsed_sec": 257.297,
+  "figure_path": "figures/basic_batch_shapes.png"
+}

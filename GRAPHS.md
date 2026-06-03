@@ -25,3 +25,19 @@
 - 요약: 20-step 학습 후 checkpoint 저장/복원에서 loss와 parameter가 동일하게 복원되었습니다.
 
 ![Checkpoint smoke train loss](figures/light_checkpoint_loss.png)
+
+## Basic BPE Training Time
+
+- 원본 이미지: `figures/basic_bpe_time.png`
+- 결과 JSON: `figures/basic_bpe_time.json`
+- 요약: 전체 사전 학습 train corpus 1,379,486자에서 `vocab_size=3000` BPE 학습에 약 9.276분이 걸렸습니다.
+
+![Basic BPE training time](figures/basic_bpe_time.png)
+
+## Basic Batch Smoke Shapes
+
+- 원본 이미지: `figures/basic_batch_shapes.png`
+- 결과 JSON: `figures/basic_batch_smoke.json`
+- 요약: Basic tokenizer와 `context_length=128`, `batch_size=4` 설정에서 input/target batch shape가 모두 `(4, 128)`로 생성되었습니다.
+
+![Basic batch smoke shapes](figures/basic_batch_shapes.png)

@@ -1,0 +1,14 @@
+{
+  "experiment": "Basic BPE time measurement",
+  "corpus_chars": 1379486,
+  "vocab_size_requested": 3000,
+  "vocab_size_actual": 3000,
+  "num_merges": 2740,
+  "bpe_train_sec": 556.574,
+  "bpe_train_min": 9.276,
+  "vocab_path": "data/vocab_basic_3000.json",
+  "sample_token_count": 18,
+  "roundtrip_ok": true,
+  "corpus_token_count": 805023,
+  "figure_path": "figures/basic_bpe_time.png"
+}

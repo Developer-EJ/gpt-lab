@@ -53,7 +53,7 @@
 | 사전 학습 데이터 | `data/nsmc_lm_train.txt`, `data/nsmc_lm_val.txt` |
 | 미세 조정 데이터 | `data/nsmc_sentiment_train.jsonl`, `data/nsmc_sentiment_val.jsonl`, `data/nsmc_sentiment_test.jsonl` |
 | 전처리 방식 | 빈 리뷰 제거, 공백 정리, train/validation 분리 |
-| 사용한 데이터 크기 | Smoke (`data/nsmc_lm_train.txt` 앞 5,000자), Light (`data/nsmc_lm_train.txt` 앞 500,000자) |
+| 사용한 데이터 크기 | Smoke (`data/nsmc_lm_train.txt` 앞 5,000자), Light (`data/nsmc_lm_train.txt` 앞 500,000자), Basic (`data/nsmc_lm_train.txt` 전체 1,379,486자) |
 
 ---
 
@@ -65,10 +65,10 @@
 | BPE 방식 | UTF-8 byte-level BPE |
 | 특수 토큰 ID | `<pad>=0`, `<unk>=1`, `<bos>=2`, `<eos>=3` |
 | byte token ID 범위 | 4~259 |
-| vocab_size | Smoke 300, Light 2,000 |
-| 학습 corpus 크기 | Smoke 5,000자, Light 500,000자 |
-| 어휘 학습 시간 | Smoke: Colab CPU 약 0.154초, Light: 로컬 CPU 약 125.359초 |
-| vocabulary 저장 경로 | Light: `data/vocab_light_2000.json` (`.gitignore` 대상) |
+| vocab_size | Smoke 300, Light 2,000, Basic 3,000 |
+| 학습 corpus 크기 | Smoke 5,000자, Light 500,000자, Basic 1,379,486자 |
+| 어휘 학습 시간 | Smoke: Colab CPU 약 0.154초, Light: 로컬 CPU 약 125.359초, Basic: 로컬 CPU 약 556.574초 |
+| vocabulary 저장 경로 | Light: `data/vocab_light_2000.json`, Basic: `data/vocab_basic_3000.json` (`.gitignore` 대상) |
 | 인코딩/디코딩 복원 예시 | `decode(encode("이 영화는 정말 좋았다! English 123", add_bos_eos=True), skip_special=True) == 원문` |
 
 ### 4.1 BPE Smoke 테스트
@@ -120,6 +120,43 @@
 | 모델 파라미터 수 | 916,224 |
 | 1-step 전 loss | 7.758 |
 | 1-step 후 loss | 7.7248 |
+
+### 4.4 BPE Basic 시간 측정
+
+| 항목 | 결과 |
+| --- | --- |
+| 실행 목적 | Basic 설정의 BPE 학습 시간과 vocab 저장 가능 여부 확인 |
+| corpus | `data/nsmc_lm_train.txt` 전체 1,379,486자 |
+| vocab_size | 3,000 |
+| 실제 vocab 크기 | 3,000 |
+| merge 수 | 2,740 |
+| 어휘 학습 시간 | 로컬 CPU 기준 약 556.574초, 약 9.276분 |
+| vocabulary 저장 경로 | `data/vocab_basic_3000.json` |
+| roundtrip 결과 | 통과 |
+| sample token 수 | 18 |
+| corpus token 수 | 805,023 |
+| 결과 해석 | Basic 설정에서는 BPE 학습 시간이 길기 때문에 학습한 vocabulary를 저장해 재사용하는 것이 필요함 |
+| 그래프 | `GRAPHS.md`, `figures/basic_bpe_time.png` |
+
+### 4.5 Basic 한 배치 Smoke 테스트
+
+| 항목 | 결과 |
+| --- | --- |
+| 실행 목적 | Basic vocabulary가 Dataset/DataLoader/GPT forward까지 연결되는지 확인 |
+| corpus | `data/nsmc_lm_train.txt` 전체 1,379,486자 |
+| vocab_size | 3,000 |
+| roundtrip 결과 | 통과 |
+| corpus token 수 | 805,023 |
+| context_length | 128 |
+| batch_size | 4 |
+| DataLoader batch 수 | 1,573 |
+| input/target shape | `(4, 128)` / `(4, 128)` |
+| 모델 구조 | `emb_dim=192`, `n_heads=4`, `n_layers=2`, `drop_rate=0.1` |
+| 모델 파라미터 수 | 2,065,536 |
+| 1-batch loss | 8.1552 |
+| 실행 시간 | 전체 corpus encode 포함 로컬 CPU 기준 약 257.297초 |
+| 결과 해석 | Basic 설정에서도 batch 구성과 forward/loss 계산이 정상 동작함. 다만 전체 corpus encode 비용도 커서 token ID 캐싱을 고려할 필요가 있음 |
+| 그래프 | `GRAPHS.md`, `figures/basic_batch_shapes.png` |
 
 ---
 
