@@ -50,11 +50,20 @@ class FeedForward(nn.Module):
     def __init__(self, d_model: int, dropout: float = 0.1, mult: int = 4):
         super().__init__()
         # TODO: d_model -> mult*d_model -> d_model 구조의 작은 MLP를 정의하세요.
-        raise NotImplementedError("FeedForward.__init__을 구현하세요.")
+        # 토큰별 hidden vector를 더 넓은 차원으로 확장한 뒤 다시 d_model로 되돌립니다.
+        self.layers = nn.Sequential(
+            nn.Linear(d_model, mult * d_model),
+            # GELU는 확장된 표현에 비선형성을 추가해 더 복잡한 패턴을 표현하게 합니다.
+            GELU(),
+            nn.Linear(mult * d_model, d_model),
+            # Dropout은 학습 중 일부 값을 끄며 과적합을 줄이는 역할을 합니다.
+            nn.Dropout(dropout),
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: FeedForward 네트워크를 통과시킵니다."""
-        raise NotImplementedError("FeedForward.forward를 구현하세요.")
+        # 입력과 출력 shape는 같고, 내부에서만 차원이 잠시 확장됩니다.
+        return self.layers(x)
 
 
 class TransformerBlock(nn.Module):
