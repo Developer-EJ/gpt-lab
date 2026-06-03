@@ -158,7 +158,23 @@ def generate_and_print_sample(
     top_k: int | None = 40,
 ) -> None:
     """TODO: start_context를 encode하고 generate 후 decode하여 출력합니다."""
-    raise NotImplementedError("generate_and_print_sample을 구현하세요.")
+    model.eval()
+    # 시작 문자열을 모델이 이해하는 token id 리스트로 바꿉니다.
+    encoded = tokenizer.encode(start_context)
+    # generate는 batch 차원을 기대하므로 (1, seq_len) 형태의 tensor로 만듭니다.
+    idx = torch.tensor(encoded, dtype=torch.long, device=device).unsqueeze(0)
+    # 실제 token 생성은 generate 함수에 맡기고, 여기서는 옵션만 전달합니다.
+    out = generate(
+        model=model,
+        idx=idx,
+        max_new_tokens=max_new_tokens,
+        context_size=context_size,
+        temperature=temperature,
+        top_k=top_k,
+    )
+    # 생성된 token id를 다시 사람이 읽을 수 있는 문자열로 복원해 출력합니다.
+    decoded_text = tokenizer.decode(out[0].tolist())
+    print(decoded_text)
 
 
 def train_model(
