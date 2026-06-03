@@ -53,7 +53,7 @@
 | 사전 학습 데이터 | `data/nsmc_lm_train.txt`, `data/nsmc_lm_val.txt` |
 | 미세 조정 데이터 | `data/nsmc_sentiment_train.jsonl`, `data/nsmc_sentiment_val.jsonl`, `data/nsmc_sentiment_test.jsonl` |
 | 전처리 방식 | 빈 리뷰 제거, 공백 정리, train/validation 분리 |
-| 사용한 데이터 크기 | Smoke (`data/nsmc_lm_train.txt` 앞 5,000자) |
+| 사용한 데이터 크기 | Smoke (`data/nsmc_lm_train.txt` 앞 5,000자), Light (`data/nsmc_lm_train.txt` 앞 500,000자) |
 
 ---
 
@@ -65,10 +65,10 @@
 | BPE 방식 | UTF-8 byte-level BPE |
 | 특수 토큰 ID | `<pad>=0`, `<unk>=1`, `<bos>=2`, `<eos>=3` |
 | byte token ID 범위 | 4~259 |
-| vocab_size | 300 |
-| 학습 corpus 크기 | `data/nsmc_lm_train.txt` 앞 5,000자 |
-| 어휘 학습 시간 | Colab CPU 기준 약 0.154초 |
-| vocabulary 저장 경로 | Smoke 테스트에서는 저장하지 않음 |
+| vocab_size | Smoke 300, Light 2,000 |
+| 학습 corpus 크기 | Smoke 5,000자, Light 500,000자 |
+| 어휘 학습 시간 | Smoke: Colab CPU 약 0.154초, Light: 로컬 CPU 약 125.359초 |
+| vocabulary 저장 경로 | Light: `data/vocab_light_2000.json` (`.gitignore` 대상) |
 | 인코딩/디코딩 복원 예시 | `decode(encode("이 영화는 정말 좋았다! English 123", add_bos_eos=True), skip_special=True) == 원문` |
 
 ### 4.1 BPE Smoke 테스트
@@ -100,6 +100,27 @@
 | BPE smoke | `corpus[:5000]`, `vocab_size=300`, `context_length=32`, `batch_size=4` |
 | BPE smoke 결과 | roundtrip 통과, vocab 300, merge 40, token 8,780, loss 5.8433 |
 
+### 4.3 BPE Light 테스트
+
+| 항목 | 결과 |
+| --- | --- |
+| 실행 목적 | Smoke보다 큰 코퍼스에서 BPE 학습 시간, vocab 저장, 모델 입력 연결을 확인 |
+| corpus | `data/nsmc_lm_train.txt` 앞 500,000자 |
+| vocab_size | 2,000 |
+| 실제 vocab 크기 | 2,000 |
+| merge 수 | 1,740 |
+| 어휘 학습 시간 | 로컬 CPU 기준 약 125.359초 |
+| vocabulary 저장 경로 | `data/vocab_light_2000.json` |
+| roundtrip 결과 | 통과 |
+| corpus token 수 | 326,967 |
+| context_length | 64 |
+| batch_size | 8 |
+| input/target shape | `(8, 64)` / `(8, 64)` |
+| 모델 구조 | `emb_dim=128`, `n_heads=4`, `n_layers=2`, `drop_rate=0.1` |
+| 모델 파라미터 수 | 916,224 |
+| 1-step 전 loss | 7.758 |
+| 1-step 후 loss | 7.7248 |
+
 ---
 
 ## 5. 모델 구조
@@ -125,25 +146,49 @@
 
 | 구분 | 항목 | 값 |
 | --- | --- | --- |
-| 모델 | vocab_size |  |
-| 모델 | context_length |  |
-| 모델 | emb_dim |  |
-| 모델 | n_heads |  |
-| 모델 | n_layers |  |
-| 학습 | batch_size |  |
-| 학습 | num_epochs |  |
-| 학습 | eval_freq, eval_iter |  |
-| 최적화 | lr, weight_decay |  |
+| 모델 | vocab_size | 2,000 |
+| 모델 | context_length | 64 |
+| 모델 | emb_dim | 128 |
+| 모델 | n_heads | 4 |
+| 모델 | n_layers | 2 |
+| 학습 | batch_size | 8 |
+| 학습 | num_epochs | Light 100-step smoke 학습 |
+| 학습 | eval_freq, eval_iter | 별도 validation 평가는 수행하지 않음 |
+| 최적화 | lr, weight_decay | AdamW, lr=3e-4 |
 
 ### 6.2 결과
 
 | 항목 | 내용 |
 | --- | --- |
-| train loss | epoch별 표 또는 요약 |
-| validation loss | epoch별 표 또는 요약 |
+| train loss | 100-step 기준 7.8385 -> 7.0092 |
+| validation loss | 미실행 |
 | 손실 그래프 | 그래프 또는 파일 경로 |
 | 생성 샘플 | 같은 시작 문맥으로 epoch별 비교 |
 | checkpoint 경로 | (예: `checkpoints/ckpt_epoch_5.pt`) |
+
+### 6.3 Light 100-step 학습 테스트
+
+| step | train loss |
+| --- | ---: |
+| 1 | 7.8385 |
+| 10 | 7.7068 |
+| 20 | 7.6413 |
+| 30 | 7.5529 |
+| 40 | 7.3784 |
+| 50 | 7.2707 |
+| 60 | 7.1923 |
+| 70 | 7.0577 |
+| 80 | 7.0507 |
+| 90 | 7.0164 |
+| 100 | 7.0092 |
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | Light 설정에서 짧은 학습 루프가 정상 동작하고 loss가 감소하는지 확인 |
+| token 수 | 326,967 |
+| DataLoader batch 수 | 639 |
+| 소요 시간 | 로컬 CPU 기준 약 2.425초 |
+| 결과 요약 | 100 step 동안 train loss가 7.8385에서 7.0092로 감소 |
 
 ---
 
