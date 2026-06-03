@@ -99,7 +99,7 @@ class GPTForSequenceClassification(nn.Module):
         self.gpt = gpt_model
         self.num_labels = num_labels
         # GPT hidden state를 받아 num_labels 클래스로 분류하는 헤드
-        d_model = gpt_model.config["d_model"]
+        d_model = gpt_model.config.get("d_model") or gpt_model.config["emb_dim"]
         self.dropout = nn.Dropout(drop_rate)
         self.classifier = nn.Linear(d_model, num_labels)
 

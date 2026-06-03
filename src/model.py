@@ -97,13 +97,14 @@ class GPTModel(nn.Module):
         super().__init__()
         self.config = config
         # TODO: embedding, blocks, final layernorm, lm_head를 정의하세요.
+        d_model = config.get("d_model") or config["emb_dim"]
         self.embedding = InputEmbedding(
-            config["vocab_size"], config["d_model"], config["context_length"]
+            config["vocab_size"], d_model, config["context_length"]
         )
         self.blocks = nn.Sequential(
             *[
                 TransformerBlock(
-                    config["d_model"],
+                    d_model,
                     config["n_heads"],
                     config["drop_rate"],
                     config["qkv_bias"],
@@ -111,8 +112,8 @@ class GPTModel(nn.Module):
                 for _ in range(config["n_layers"])
             ]
         )
-        self.ln_f = LayerNorm(config["d_model"])
-        self.lm_head = nn.Linear(config["d_model"], config["vocab_size"], bias=False)
+        self.ln_f = LayerNorm(d_model)
+        self.lm_head = nn.Linear(d_model, config["vocab_size"], bias=False)
 
     # 토큰 ID를 받아 logits 계산, targets가 있으면 loss도 함께 반환
     def forward(
