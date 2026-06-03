@@ -8,6 +8,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import Dataset
 
 try:
@@ -126,10 +127,15 @@ class GPTForSequenceClassification(nn.Module):
         drop_rate: float = 0.1,
     ):
         super().__init__()
+        # 사전 학습된 GPT backbone은 문장 표현을 만드는 역할로 사용합니다.
         self.gpt = gpt_model
+        # 감성 분류에서는 보통 긍정/부정 2개 class를 예측합니다.
         self.num_labels = num_labels
         # TODO: dropout과 classifier를 정의하세요. classifier 입력 차원은 gpt_model.config["emb_dim"]입니다.
-        raise NotImplementedError("GPTForSequenceClassification.__init__을 구현하세요.")
+        # 분류 head 앞에 dropout을 두어 미세 조정 중 과적합을 줄입니다.
+        self.dropout = nn.Dropout(drop_rate)
+        # LM head는 그대로 두고, hidden state 위에 별도 분류 head를 붙입니다.
+        self.classifier = nn.Linear(gpt_model.config["emb_dim"], num_labels)
 
     def forward(
         self,
@@ -141,7 +147,22 @@ class GPTForSequenceClassification(nn.Module):
 
         labels가 있으면 (loss, logits), 없으면 logits를 반환합니다.
         """
-        raise NotImplementedError("GPTForSequenceClassification.forward를 구현하세요.")
+        # GPTModel.forward는 LM head까지 지나가므로, 여기서는 hidden state 흐름만 직접 사용합니다.
+        x = self.gpt.embedding(input_ids)
+        x = self.gpt.blocks(x)
+        x = self.gpt.final_norm(x)
+
+        # 문장 전체를 대표할 벡터로 마지막 토큰 위치의 hidden state를 사용합니다.
+        last_token_hidden = x[:, -1, :]
+        # 별도 classifier head가 hidden state를 감성 class logits로 바꿉니다.
+        logits = self.classifier(self.dropout(last_token_hidden))
+
+        if labels is None:
+            return logits
+
+        # labels가 주어지면 분류용 cross entropy loss를 함께 반환합니다.
+        loss = F.cross_entropy(logits, labels)
+        return loss, logits
 
 
 def train_epoch_sentiment(
