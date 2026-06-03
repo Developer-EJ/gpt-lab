@@ -81,3 +81,11 @@
 - 요약: token ID cache를 사용한 Basic 100-step에서 train loss는 8.1775에서 7.3897로, validation loss는 8.1748에서 7.3425로 감소했습니다.
 
 ![Cached Basic 100-step train validation loss](figures/basic_cached_100step_loss.png)
+
+## Cached Basic 100-step Generation Token Frequency
+
+- 원본 이미지: `figures/basic_cached_100step_generation_token_freq.png`
+- 결과 JSON: `figures/basic_cached_100step_generation_smoke.json`
+- 요약: 100-step 학습 후 greedy generation에서 token id 267 (`이`)가 30회 반복 생성되었습니다.
+
+![Cached Basic 100-step generation token frequency](figures/basic_cached_100step_generation_token_freq.png)

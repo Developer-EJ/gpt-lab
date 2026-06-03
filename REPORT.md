@@ -420,6 +420,31 @@
 | 결과 해석 | cache 사용으로 준비 시간이 크게 줄었고, 100-step까지 validation loss가 계속 완만하게 감소함 |
 | 그래프 | `GRAPHS.md`, `figures/basic_cached_100step_loss.png` |
 
+### 6.12 Cached Basic 100-step Generation Smoke 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | token ID cache를 사용한 Basic 100-step 학습 후 `generate()`와 tokenizer `decode()` 경로 및 생성 반복 양상을 확인 |
+| prompt | `이 영화는` |
+| 생성 방식 | greedy decoding (`temperature=0`, `max_new_tokens=30`) |
+| prompt token 수 | 2 |
+| 생성 token 수 | 30 |
+| cache 경로 | `data/basic_train_ids.pt` (`.gitignore` 대상) |
+| cache load 시간 | 약 0.014초 |
+| train token 수 | 805,023 |
+| vocab_size | 3,000 |
+| context_length | 128 |
+| batch_size | 4 |
+| DataLoader batch 수 | 1,573 |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 3.579초 |
+| 100-step train loss | 8.1775 -> 7.4030 |
+| 학습 전 생성 샘플 | `이 영화는 이해 고공 별 역시 나오 야 사�구. 그 해서 OO 가슴받더니 혼잡�때언립 철 한공포 나온보는 현실뭔틱 따` |
+| 100-step 학습 후 생성 샘플 | `이 영화는이이이이이이이이이이이이이이이이이이이이이이이이이이이이이이` |
+| 생성 token 다양성 | unique token 1개 |
+| 최빈 생성 token | token id 267 (`이`), 30회 |
+| 결과 해석 | 100-step 학습 후에도 생성 경로는 동작하지만 greedy 생성은 단일 token 반복으로 퇴화함 |
+| 그래프 | `GRAPHS.md`, `figures/basic_cached_100step_generation_token_freq.png` |
+
 ---
 
 ## 7. 미세 조정
