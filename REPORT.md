@@ -4,9 +4,9 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 반 | (예: AI 1반) |
-| 팀명 | (예: 3팀) |
-| 팀원 | (예: 홍길동, 김철수) |
+| 반 | SW-AI 1반 |
+| 팀명 | 5 팀 |
+| 팀원 | 강지현, 고명석, 김은재, 김원우 |
 
 ---
 
@@ -26,14 +26,15 @@
 ## 2. 테스트 통과 현황
 
 | 실행 명령 | 결과 | 비고 |
-| --- | --- | --- |
-| `pytest tests/test_bpe.py -v` | 통과 / 실패 / 미실행 |  |
-| `pytest tests/test_dataset.py -v` | 통과 / 실패 / 미실행 |  |
-| `pytest tests/test_attention.py -v` | 통과 / 실패 / 미실행 |  |
-| `pytest tests/test_model.py -v` | 통과 / 실패 / 미실행 |  |
-| `pytest tests/test_train.py -v` | 통과 / 실패 / 미실행 |  |
-| `pytest tests/test_finetune.py -v` | 통과 / 실패 / 미실행 |  |
-| `pytest tests/ -v` | 통과 / 실패 / 미실행 |  |
+| --- | :---: | --- |
+| `pytest tests/test_bpe.py -v` | 통과 |  |
+| `pytest tests/test_dataset.py -v` | 통과 |  |
+| `pytest tests/test_attention.py -v` | 통과 |  |
+| `pytest tests/test_model.py -v` | 통과 |  |
+| `pytest tests/test_train.py -v` | 통과 |  |
+| `pytest tests/test_finetune.py -v` | 통과 |  |
+| `pytest tests/ -v` | 통과 | 로컬: 28 passed, 1 warning |
+| `pytest tests/ -q` | 통과 | Colab CPU: 28 passed in 3.51s |
 
 실패한 테스트가 있다면 에러 요약을 적습니다.
 
@@ -52,7 +53,7 @@
 | 사전 학습 데이터 | `data/nsmc_lm_train.txt`, `data/nsmc_lm_val.txt` |
 | 미세 조정 데이터 | `data/nsmc_sentiment_train.jsonl`, `data/nsmc_sentiment_val.jsonl`, `data/nsmc_sentiment_test.jsonl` |
 | 전처리 방식 | 빈 리뷰 제거, 공백 정리, train/validation 분리 |
-| 사용한 데이터 크기 | Smoke / Light / Basic 중 선택 |
+| 사용한 데이터 크기 | Smoke (`data/nsmc_lm_train.txt` 앞 5,000자) |
 
 ---
 
@@ -64,11 +65,40 @@
 | BPE 방식 | UTF-8 byte-level BPE |
 | 특수 토큰 ID | `<pad>=0`, `<unk>=1`, `<bos>=2`, `<eos>=3` |
 | byte token ID 범위 | 4~259 |
-| vocab_size | (예: 3000) |
-| 학습 corpus 크기 | (예: `corpus[:1_500_000]`) |
-| 어휘 학습 시간 | (예: Colab CPU Basic 설정 35분) |
-| vocabulary 저장 경로 | (예: `data/nsmc_bpe_vocab_3000.json`) |
-| 인코딩/디코딩 복원 예시 | (예: `decode(encode("이 영화는 좋았다")) == 원문`) |
+| vocab_size | 300 |
+| 학습 corpus 크기 | `data/nsmc_lm_train.txt` 앞 5,000자 |
+| 어휘 학습 시간 | Colab CPU 기준 약 0.154초 |
+| vocabulary 저장 경로 | Smoke 테스트에서는 저장하지 않음 |
+| 인코딩/디코딩 복원 예시 | `decode(encode("이 영화는 정말 좋았다! English 123", add_bos_eos=True), skip_special=True) == 원문` |
+
+### 4.1 BPE Smoke 테스트
+
+| 항목 | 결과 |
+| --- | --- |
+| 실행 목적 | BPE 학습, encode/decode 복원, GPT 학습 배치 구성이 정상 동작하는지 빠르게 확인 |
+| corpus | `data/nsmc_lm_train.txt` 앞 5,000자 |
+| vocab_size | 300 |
+| 실제 vocab 크기 | 300 |
+| merge 수 | 40 |
+| 어휘 학습 시간 | Colab CPU 기준 약 0.154초 |
+| corpus token 수 | 8,780 |
+| roundtrip 결과 | 통과 |
+| context_length | 32 |
+| batch_size | 4 |
+| input/target shape | `(4, 32)` / `(4, 32)` |
+| 미니 GPT 1-batch smoke loss | 5.8433 |
+
+### 4.2 Colab 검증 기록
+
+| 항목 | 내용 |
+| --- | --- |
+| Colab URL | `https://colab.research.google.com/github/Developer-EJ/gpt-lab/blob/kms/gpt-lab.ipynb` |
+| 실행 브랜치 | `kms` |
+| 실행 방식 | Colab 터미널에서 `kms` 브랜치 clone 후 테스트 실행 |
+| 전체 테스트 | `pytest tests/ -q` -> 28 passed in 3.51s |
+| 데이터 준비 | `python download_data.py` 실행, NSMC train/val/test 파일 생성 확인 |
+| BPE smoke | `corpus[:5000]`, `vocab_size=300`, `context_length=32`, `batch_size=4` |
+| BPE smoke 결과 | roundtrip 통과, vocab 300, merge 40, token 8,780, loss 5.8433 |
 
 ---
 
@@ -138,11 +168,11 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| Python | (예: Python 3.11) |
-| PyTorch | (예: PyTorch 2.x) |
-| 실행 환경 | Colab GPU / Colab CPU / 로컬 |
-| GPU/CPU 정보 |  |
-| 총 학습 소요 시간 |  |
+| Python | Colab: Python 3.12.13 |
+| PyTorch | Colab: 2.11.0+cpu |
+| 실행 환경 | Colab CPU / 로컬 |
+| GPU/CPU 정보 | Colab Google Compute Engine CPU 런타임 |
+| 총 학습 소요 시간 | BPE smoke 기준 약 0.154초 |
 
 ---
 
