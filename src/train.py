@@ -68,7 +68,14 @@ def save_checkpoint(
     path: str,
 ) -> None:
     """TODO: model/optimizer 상태, epoch, global_step을 torch.save로 저장합니다."""
-    raise NotImplementedError("save_checkpoint를 구현하세요.")
+    # 학습을 이어서 재개할 수 있도록 모델, 옵티마이저, 진행 위치를 함께 저장합니다.
+    checkpoint = {
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "epoch": epoch,
+        "global_step": global_step,
+    }
+    torch.save(checkpoint, path)
 
 
 def load_checkpoint(
@@ -78,7 +85,17 @@ def load_checkpoint(
     device: torch.device,
 ) -> tuple[int, int]:
     """TODO: torch.load로 checkpoint를 읽어 model/optimizer 상태를 복원합니다."""
-    raise NotImplementedError("load_checkpoint를 구현하세요.")
+    # 저장된 tensor를 현재 실행 device에 맞춰 불러옵니다.
+    checkpoint = torch.load(path, map_location=device)
+    # 모델 가중치를 checkpoint 상태로 되돌립니다.
+    model.load_state_dict(checkpoint["model_state_dict"])
+
+    # 추론만 할 때는 optimizer가 없을 수 있으므로, 주어진 경우에만 복원합니다.
+    if optimizer is not None and "optimizer_state_dict" in checkpoint:
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+    # 학습 루프가 이어서 시작할 epoch과 step을 알 수 있게 반환합니다.
+    return checkpoint["epoch"], checkpoint["global_step"]
 
 
 def generate(
