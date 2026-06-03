@@ -81,11 +81,31 @@ class TransformerBlock(nn.Module):
     ):
         super().__init__()
         # TODO: attention, ffn, layernorm, dropout을 정의하세요.
-        raise NotImplementedError("TransformerBlock.__init__을 구현하세요.")
+        # 첫 번째 sublayer: 정규화한 입력을 causal self-attention에 통과시킵니다.
+        self.att = MultiHeadAttention(d_model, n_heads, drop_rate, qkv_bias)
+        # 두 번째 sublayer: attention 결과를 토큰별 MLP로 한 번 더 변환합니다.
+        self.ff = FeedForward(d_model, dropout=drop_rate)
+        # GPT block은 sublayer 앞에서 LayerNorm을 적용하는 pre-LN 구조입니다.
+        self.norm1 = LayerNorm(d_model)
+        self.norm2 = LayerNorm(d_model)
+        # residual에 더하기 전 sublayer 출력에 dropout을 적용합니다.
+        self.drop_shortcut = nn.Dropout(drop_rate)
 
     def forward(self, x: torch.Tensor, causal_mask: bool = True) -> torch.Tensor:
         """TODO: attention과 ffn을 residual connection으로 연결합니다."""
-        raise NotImplementedError("TransformerBlock.forward를 구현하세요.")
+        # Attention sublayer: norm -> attention -> dropout -> residual add
+        shortcut = x
+        x = self.norm1(x)
+        x = self.att(x, causal_mask=causal_mask)
+        x = self.drop_shortcut(x)
+        x = x + shortcut
+
+        # FeedForward sublayer: norm -> FFN -> dropout -> residual add
+        shortcut = x
+        x = self.norm2(x)
+        x = self.ff(x)
+        x = self.drop_shortcut(x)
+        return x + shortcut
 
 
 class GPTModel(nn.Module):
