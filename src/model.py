@@ -181,4 +181,19 @@ def generate_text_simple(
     context_size: int,
 ) -> torch.Tensor:
     """TODO: greedy 방식으로 max_new_tokens만큼 다음 토큰을 이어 붙입니다."""
-    raise NotImplementedError("generate_text_simple을 구현하세요.")
+    # 새 토큰을 하나씩 예측해 기존 token sequence 뒤에 붙입니다.
+    for _ in range(max_new_tokens):
+        # 모델의 최대 context 길이를 넘지 않도록 마지막 context_size개 토큰만 사용합니다.
+        idx_cond = idx[:, -context_size:]
+
+        with torch.no_grad():
+            logits = model(idx_cond)
+
+        # 다음 토큰은 현재 sequence의 마지막 위치 logits에서 고릅니다.
+        logits = logits[:, -1, :]
+        # greedy decoding: 확률이 가장 높은 token id를 선택합니다.
+        idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+        # 선택한 token을 sequence 뒤에 이어 붙입니다.
+        idx = torch.cat((idx, idx_next), dim=1)
+
+    return idx
