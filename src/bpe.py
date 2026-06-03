@@ -50,7 +50,6 @@ class BPETokenizer:
             self.id_to_token[idx] = token
             self.token_to_id[token] = idx
 
-
     def get_pad_id(self):
         """padding 토큰 ID."""
         return SPECIAL_IDS[PAD_TOKEN]
@@ -68,36 +67,37 @@ class BPETokenizer:
         return SPECIAL_IDS[EOS_TOKEN]
 
     """ 코퍼스에서 BPE merge rule과 vocabulary를 학습 """
+
     def train(self, corpus: str):
         # 1. 특수 토큰 초기화 + 코퍼스 전체를 byte ID로 전환
-        self._init_special_tokens()    
+        self._init_special_tokens()
         ids = [BYTE_OFFSET + byte for byte in corpus.encode("utf-8")]
-        
+
         # vocab이 찰 때까지 반복
         while len(self.id_to_token) < self.vocab_size:
             # 2. 인접 쌍 빈도수 카운팅
             pair_counts = {}
             for i in range(len(ids) - 1):
-                pair = (ids[i], ids[i+1])
+                pair = (ids[i], ids[i + 1])
                 pair_counts[pair] = pair_counts.get(pair, 0) + 1
-            
+
             if not pair_counts:
                 break
-            
+
             # 3. 가장 빈도 높은 쌍 선택
             best_pair = max(pair_counts, key=lambda p: pair_counts[p])
-            
+
             # 4. 새 토큰 등록
             new_id = len(self.id_to_token)
             self.id_to_token[new_id] = best_pair
             self.token_to_id[best_pair] = new_id
             self.merges.append(best_pair)
-            
+
             # 5. 리스트에서 best_pair를 new_id로 교체
             i = 0
             merged = []
             while i < len(ids):
-                if i < len(ids) - 1 and (ids[i], ids[i+1]) == best_pair:
+                if i < len(ids) - 1 and (ids[i], ids[i + 1]) == best_pair:
                     merged.append(new_id)
                     i += 2
                 else:
@@ -122,9 +122,9 @@ class BPETokenizer:
                 vocab[id] = {"type": "tuple", "value": list(token)}
             else:
                 vocab[id] = {"type": "str", "value": token}
-        
+
         merges = [list(pair) for pair in self.merges]
-        
+
         with open(path, "w", encoding="utf-8") as f:
             json.dump({"vocab": vocab, "merges": merges}, f)
 
@@ -137,10 +137,10 @@ class BPETokenizer:
         """
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
         self.id_to_token = {}
         self.token_to_id = {}
-        
+
         for id_str, entry in data["vocab"].items():
             id = int(id_str)
             if entry["type"] == "bytes":
@@ -151,10 +151,11 @@ class BPETokenizer:
                 token = entry["value"]
             self.id_to_token[id] = token
             self.token_to_id[token] = id
-        
+
         self.merges = [tuple(pair) for pair in data["merges"]]
 
     """ 문자열을 token ID 리스트로 변환 """
+
     def encode(self, text: str, add_bos_eos: bool = False) -> list[int]:
         # 1. text를 byte ID로 전환
         byte_ids = [BYTE_OFFSET + byte for byte in text.encode("utf-8")]
@@ -167,7 +168,7 @@ class BPETokenizer:
             merged_result = []
             while i < len(byte_ids):
                 # 만약 merges rule에 존재하다면, merged 배열에 합쳐진 id를 추가
-                if i < len(byte_ids) - 1 and (byte_ids[i], byte_ids[i+1]) == pair:
+                if i < len(byte_ids) - 1 and (byte_ids[i], byte_ids[i + 1]) == pair:
                     merged_result.append(merged_id)
                     i += 2
                 # merges rule에 존재하지 않는다면, merged 배열에 현재 byte ID를 추가
@@ -183,11 +184,12 @@ class BPETokenizer:
         return byte_ids
 
     """ token ID 리스트를 문자열로 복원 """
+
     def decode(self, ids: list[int], skip_special: bool = True) -> str:
         byte_list = []
-        
+
         # ID 하나를 bytes로 풀어주는 헬퍼 함수
-        def devide_ID (id):
+        def devide_ID(id):
             token = self.id_to_token[id]
             # id_to_token 배열에 토플 형태로 저장되어 있으면, 재귀적으로 분해
             if isinstance(token, tuple):
@@ -201,10 +203,10 @@ class BPETokenizer:
                 # skip_special이 false라면 특수 토큰도 byte_list에 추가
                 if not skip_special:
                     byte_list.extend(token.encode("utf-8"))
-        
+
         # id 리스트를 순회하면서 devide_ID 호출
         for id in ids:
             if id in self.id_to_token:
                 devide_ID(id)
-        
+
         return bytes(byte_list).decode("utf-8")

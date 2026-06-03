@@ -51,4 +51,37 @@ class MultiHeadAttention(nn.Module):
             causal_mask: True이면 미래 위치를 볼 수 없게 mask 처리
             return_attention_weights: True이면 attention weight도 함께 반환
         """
-        raise NotImplementedError("MultiHeadAttention.forward를 구현하세요.")
+        B, T, _ = x.shape
+
+        # 1. Q, K, V projection
+        Q = self.W_q(x)  # (B, T, d_model)
+        K = self.W_k(x)  # (B, T, d_model)
+        V = self.W_v(x)  # (B, T, d_model)
+
+        # 2. head 분리: (B, T, d_model) → (B, n_heads, T, head_dim)
+        Q = Q.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
+        K = K.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
+        V = V.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
+
+        # 3. attention score
+        scale = self.head_dim**0.5
+        scores = Q @ K.transpose(-2, -1) / scale  # (B, n_heads, T, T)
+
+        # 4. causal mask
+        if causal_mask:
+            mask = torch.triu(torch.ones(T, T, device=x.device), diagonal=1).bool()
+            scores = scores.masked_fill(mask, float("-inf"))
+
+        attn_weights = torch.softmax(scores, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+
+        # 5. V와 곱하고 head 합치기
+        out = attn_weights @ V  # (B, n_heads, T, head_dim)
+        out = (
+            out.transpose(1, 2).contiguous().view(B, T, self.d_model)
+        )  # (B, T, d_model)
+        out = self.out_proj(out)
+
+        if return_attention_weights:
+            return out, attn_weights
+        return out

@@ -36,7 +36,9 @@ def calc_loss_loader(
         for i, (input_batch, target_batch) in enumerate(data_loader):
             if i >= num_batches:
                 break
-            total_loss += calc_loss_batch(input_batch, target_batch, model, device).item()
+            total_loss += calc_loss_batch(
+                input_batch, target_batch, model, device
+            ).item()
     return total_loss / num_batches
 
 
@@ -48,12 +50,15 @@ def save_checkpoint(
     path: str,
 ) -> None:
     # 학습 재개에 필요한 모델/옵티마이저 가중치와 진행 상태를 파일로 저장
-    torch.save({
-        "model_state_dict": model.state_dict(),
-        "optimizer_state_dict": optimizer.state_dict(),
-        "epoch": epoch,
-        "global_step": global_step,
-    }, path)
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "epoch": epoch,
+            "global_step": global_step,
+        },
+        path,
+    )
 
 
 def load_checkpoint(
@@ -113,7 +118,11 @@ def generate_and_print_sample(
 ) -> None:
     # 시작 문자열을 토큰 ID로 변환 후 생성, 결과를 디코딩해서 출력
     model.eval()
-    idx = torch.tensor(tokenizer.encode(start_context), dtype=torch.long).unsqueeze(0).to(device)
+    idx = (
+        torch.tensor(tokenizer.encode(start_context), dtype=torch.long)
+        .unsqueeze(0)
+        .to(device)
+    )
     result = generate(model, idx, max_new_tokens, context_size, temperature, top_k)
     print(tokenizer.decode(result[0].tolist()))
     model.train()
@@ -143,8 +152,8 @@ def train_model(
         for input_batch, target_batch in train_loader:
             optimizer.zero_grad()
             loss = calc_loss_batch(input_batch, target_batch, model, device)
-            loss.backward()       # gradient 계산
-            optimizer.step()      # W 업데이트
+            loss.backward()  # gradient 계산
+            optimizer.step()  # W 업데이트
             epoch_loss += loss.item()
             global_step += 1
 
@@ -152,7 +161,9 @@ def train_model(
             if global_step % eval_freq == 0:
                 train_loss = calc_loss_loader(train_loader, model, device, eval_iter)
                 val_loss = calc_loss_loader(val_loader, model, device, eval_iter)
-                print(f"epoch {epoch+1} | step {global_step} | train loss {train_loss:.4f} | val loss {val_loss:.4f}")
+                print(
+                    f"epoch {epoch+1} | step {global_step} | train loss {train_loss:.4f} | val loss {val_loss:.4f}"
+                )
 
         # epoch 단위 평균 loss 기록
         train_losses.append(epoch_loss / len(train_loader))
@@ -163,12 +174,20 @@ def train_model(
 
         # ckpt_freq 에폭마다 체크포인트 저장
         if ckpt_freq is not None and (epoch + 1) % ckpt_freq == 0:
-            save_checkpoint(model, optimizer, epoch + 1, global_step, f"checkpoint_epoch{epoch+1}.pt")
+            save_checkpoint(
+                model,
+                optimizer,
+                epoch + 1,
+                global_step,
+                f"checkpoint_epoch{epoch+1}.pt",
+            )
 
     return train_losses
 
 
-def plot_losses(train_losses: list[float], val_losses: list[float] | None = None) -> None:
+def plot_losses(
+    train_losses: list[float], val_losses: list[float] | None = None
+) -> None:
     """훈련/검증 손실 그래프를 그리는 제공 함수."""
     plt.plot(train_losses, label="Train")
     if val_losses is not None:

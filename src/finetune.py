@@ -76,7 +76,7 @@ class ReviewSentimentDataset(Dataset):
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
         # 텍스트를 토큰 ID로 변환 후 max_length에 맞게 자르거나 pad_id로 패딩
         item = self.data[idx]
-        token_ids = self.tokenizer.encode(item["text"])[:self.max_length]
+        token_ids = self.tokenizer.encode(item["text"])[: self.max_length]
         pad_len = self.max_length - len(token_ids)
         token_ids = token_ids + [self.pad_id] * pad_len
         return torch.tensor(token_ids, dtype=torch.long), item["label"]
@@ -114,8 +114,8 @@ class GPTForSequenceClassification(nn.Module):
         labels가 있으면 (loss, logits), 없으면 logits를 반환합니다.
         """
         # GPT backbone으로 lm_head 이전 hidden state 추출 후 마지막 토큰 벡터를 문장 대표로 사용
-        hidden = self.gpt(input_ids, return_hidden=True)   # (B, T, d_model)
-        cls_vec = hidden[:, -1, :]             # 마지막 토큰 벡터를 문장 대표로 사용
+        hidden = self.gpt(input_ids, return_hidden=True)  # (B, T, d_model)
+        cls_vec = hidden[:, -1, :]  # 마지막 토큰 벡터를 문장 대표로 사용
         logits = self.classifier(self.dropout(cls_vec))  # (B, num_labels)
 
         if labels is None:
