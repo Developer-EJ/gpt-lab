@@ -129,3 +129,11 @@
 - 요약: test subset accuracy는 0.531250이었고, confusion matrix는 `[[4, 117], [3, 132]]`로 positive class 예측 쏠림이 나타났습니다.
 
 ![Finetune mini test confusion matrix](figures/finetune_mini_test_confusion.png)
+
+## Finetune Mini Majority Baseline Comparison
+
+- 원본 이미지: `figures/finetune_mini_baseline_compare.png`
+- 결과 JSON: `figures/finetune_mini_baseline_compare.json`
+- 요약: mini finetune model accuracy는 0.531250으로 all-positive baseline 0.527344보다 0.003906 높았습니다.
+
+![Finetune mini majority baseline comparison](figures/finetune_mini_baseline_compare.png)

@@ -51,9 +51,9 @@
 | 단위 테스트 | 100% | 로컬/Colab pytest 28개 통과 | 최종 제출 전 재실행 |
 | BPE 검증 | 100% | Smoke, Light, Basic 시간 측정, batch smoke | 없음 |
 | 사전 학습 smoke | 90% | Light/Basic loss, generation, sampling, checkpoint, resume, token cache | 더 긴 Colab 학습 선택 사항 |
-| 미세 조정 smoke | 75% | classifier smoke, mini train/validation curve, mini test confusion matrix | full finetune Colab 학습, 전체 test 평가 |
-| 보고서/그래프 | 85% | `REPORT.md`, `GRAPHS.md`, 실험별 JSON/PNG 기록 | 최종 요약/고찰 정리 |
-| 전체 진행률 | 약 82% | 로컬 중심 smoke/mini 검증 대부분 완료 | 긴 finetune Colab 검증과 최종 재검증 |
+| 미세 조정 smoke | 80% | classifier smoke, mini train/validation curve, mini test confusion matrix, majority baseline 비교 | full finetune Colab 학습, 전체 test 평가 |
+| 보고서/그래프 | 88% | `REPORT.md`, `GRAPHS.md`, 실험별 JSON/PNG 기록 | 최종 요약/고찰 정리 |
+| 전체 진행률 | 약 84% | 로컬 중심 smoke/mini 검증 대부분 완료 | 긴 finetune Colab 검증과 최종 재검증 |
 
 ---
 
@@ -596,6 +596,21 @@
 | 학습/평가 소요 시간 | 로컬 CPU 기준 약 40.658초 |
 | 결과 해석 | 전체 accuracy는 0.531250이지만 positive class로 치우친 예측이 강하게 나타남. full finetune에서는 class balance와 validation 기준 early stopping이 필요함 |
 | 그래프 | `GRAPHS.md`, `figures/finetune_mini_test_confusion.png` |
+
+### 7.4 Finetune Mini Majority Baseline 비교 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | finetune mini test accuracy가 단순 majority baseline보다 의미 있게 높은지 확인 |
+| test sample 수 | 256 |
+| test label 분포 | negative 121개, positive 135개 |
+| all-negative baseline accuracy | 0.472656 |
+| all-positive baseline accuracy | 0.527344 |
+| mini finetune model accuracy | 0.531250 |
+| mini model - all-positive 차이 | 0.003906 |
+| mini model confusion matrix | `[[4, 117], [3, 132]]` |
+| 결과 해석 | mini model은 all-positive baseline보다 0.003906만 높아 실질적인 성능 개선은 거의 없음. full finetune에서는 validation 기준 checkpoint 선택과 편향 완화가 필요함 |
+| 그래프 | `GRAPHS.md`, `figures/finetune_mini_baseline_compare.png` |
 
 ---
 

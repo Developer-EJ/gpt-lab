@@ -1,0 +1,26 @@
+{
+  "experiment": "Finetune mini majority baseline comparison",
+  "test_rows": 256,
+  "test_label_counts": {
+    "negative_0": 121,
+    "positive_1": 135
+  },
+  "all_negative_acc": 0.472656,
+  "all_positive_acc": 0.527344,
+  "mini_model_test_acc": 0.53125,
+  "mini_model_test_loss": 0.864738,
+  "mini_model_confusion_matrix": [
+    [
+      4,
+      117
+    ],
+    [
+      3,
+      132
+    ]
+  ],
+  "model_minus_all_positive_acc": 0.003906,
+  "model_minus_all_negative_acc": 0.058594,
+  "load_sec": 0.092,
+  "figure_path": "figures/finetune_mini_baseline_compare.png"
+}
