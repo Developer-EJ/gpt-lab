@@ -193,28 +193,102 @@ class BPETokenizer:
 
     """ token ID 리스트를 문자열로 복원 """
 
-    def decode(self, ids: list[int], skip_special: bool = True) -> str:
-        byte_list = []
+    def decode(
+        self,
+        ids: list[int],
+        skip_special: bool = True,
+        errors: str = "strict",
+    ) -> str:
+        """
+        TODO: token ID 리스트를 문자열로 복원합니다.
 
-        # ID 하나를 bytes로 풀어주는 헬퍼 함수
-        def devide_ID(id):
-            token = self.id_to_token[id]
-            # id_to_token 배열에 토플 형태로 저장되어 있으면, 재귀적으로 분해
+        주의:
+        - merge token은 원본 byte token까지 재귀적으로 펼칩니다.
+        - byte를 하나씩 decode하지 말고, 마지막에 `bytes(...).decode("utf-8")`를 한 번만 호출합니다.
+        """
+
+        """
+        token ID 리스트를 문자열로 복원합니다.
+
+        Input:
+            ids:
+                token ID 리스트입니다.
+                예: [69]
+                예: [238, 180, 132]
+                예: [2, 69, 3]
+
+            skip_special:
+                True이면 <pad>, <unk>, <bos>, <eos> 같은 특수 토큰은 복원 결과에서 제외합니다.
+
+        Output:
+            복원된 문자열입니다.
+
+            예:
+                decode([69])
+                -> "A"
+
+            예:
+                decode([238, 180, 132])
+                -> "가"
+
+            예:
+                decode([2, 69, 3], skip_special=True)
+                -> "A"
+
+        중요한 점:
+            - 기본 byte token은 bytes 객체입니다.
+            - BPE merge token은 (left_id, right_id) 형태의 tuple입니다.
+            - merge token은 바로 문자로 바꾸지 않고, 내부 token들을 재귀적으로 펼쳐 byte로 만듭니다.
+            - 한글은 UTF-8에서 여러 byte로 이루어질 수 있으므로 byte 하나씩 decode하면 안 됩니다.
+            - 모든 byte를 합친 뒤 마지막에 decode("utf-8")를 한 번만 호출합니다.
+        """
+
+        if not self.id_to_token:
+            self._init_special_tokens()
+
+        def token_to_bytes(token_id: int) -> bytes:
+            """
+            token ID 하나를 bytes로 복원합니다.
+
+            token 종류:
+                - str:
+                    <pad>, <unk>, <bos>, <eos> 같은 특수 토큰
+                - bytes:
+                    기본 byte token
+                - tuple:
+                    BPE merge token, 예: (69, 70)
+            """
+
+            token = self.id_to_token[token_id]
+
+            # 특수 토큰입니다. 보통 decode 결과에서는 제외합니다.
+            if isinstance(token, str):
+                if skip_special:
+                    return b""
+                return token.encode("utf-8")
+
+            # 기본 byte token입니다.
+            # 예: id 69 -> b"A"
+            if isinstance(token, bytes):
+                return token
+
+            # BPE merge token입니다.
+            # 예: id 260 -> (69, 70)
+            # 이 경우 왼쪽 token과 오른쪽 token을 각각 bytes로 펼친 뒤 이어 붙입니다.
             if isinstance(token, tuple):
-                devide_ID(token[0])
-                devide_ID(token[1])
-            # bytes라면, 그대로 byte_list에 추가
-            elif isinstance(token, bytes):
-                byte_list.append(token[0])
-            # tuple, bytes 둘 다 아니라면 -> 특수 토큰
-            else:
-                # skip_special이 false라면 특수 토큰도 byte_list에 추가
-                if not skip_special:
-                    byte_list.extend(token.encode("utf-8"))
+                left_id, right_id = token
+                left_bytes = token_to_bytes(left_id)
+                right_bytes = token_to_bytes(right_id)
+                return left_bytes + right_bytes
 
-        # id 리스트를 순회하면서 devide_ID 호출
-        for id in ids:
-            if id in self.id_to_token:
-                devide_ID(id)
+            raise TypeError(f"지원하지 않는 token 타입입니다: {type(token)}")
 
-        return bytes(byte_list).decode("utf-8")
+        byte_chunks = []
+
+        for token_id in ids:
+            token_bytes = token_to_bytes(token_id)
+            byte_chunks.append(token_bytes)
+
+        text_bytes = b"".join(byte_chunks)
+
+        return text_bytes.decode("utf-8", errors=errors)
