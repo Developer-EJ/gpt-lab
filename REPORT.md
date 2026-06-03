@@ -137,10 +137,10 @@ base 설정은 `vocab_size=2,000`, `context_length=64`, `emb_dim=128`, `n_layers
 | learning_rate | 1e-4, 3e-4, 5e-4 |
 | batch_size | 4, 8, 16 |
 | drop_rate | 0.0, 0.1, 0.5 |
-| context_length | 32, 64, 128 |
-| emb_dim | 64, 128, 192 |
-| n_heads | 2, 4, 8 |
-| n_layers | 2, 4, 6 |
+| context_length | 8, 64, 512 |
+| emb_dim | 4, 128, 256 |
+| n_heads | 4 |
+| n_layers | 1, 4, 10 |
 
 ### 6.3 결과 확인 방식
 
