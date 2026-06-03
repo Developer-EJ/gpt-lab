@@ -131,7 +131,10 @@ class BPETokenizer:
         merges = [list(pair) for pair in self.merges]
 
         with open(path, "w", encoding="utf-8") as f:
-            json.dump({"vocab_size": self.vocab_size, "id_to_token": vocab, "merges": merges}, f)
+            json.dump(
+                {"vocab_size": self.vocab_size, "id_to_token": vocab, "merges": merges},
+                f,
+            )
 
     # 저장된 JSON를 읽어서 vocab과 merges를 복원
     # 입력 : 파일 경로
@@ -291,4 +294,4 @@ class BPETokenizer:
 
         text_bytes = b"".join(byte_chunks)
 
-        return text_bytes.decode("utf-8", errors=errors)
+        return text_bytes.decode("utf-8", errors="replace")
