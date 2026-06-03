@@ -1,0 +1,107 @@
+{
+  "experiment": "Basic generation smoke",
+  "prompt": "이 영화는",
+  "prompt_token_count": 2,
+  "max_new_tokens": 30,
+  "generation_method": "greedy temperature=0",
+  "train_chars": 1379486,
+  "train_token_count": 805023,
+  "encode_sec": 263.694,
+  "vocab_size": 3000,
+  "context_length": 128,
+  "batch_size": 4,
+  "model_config": {
+    "vocab_size": 3000,
+    "context_length": 128,
+    "emb_dim": 192,
+    "n_heads": 4,
+    "n_layers": 2,
+    "drop_rate": 0.1,
+    "qkv_bias": false
+  },
+  "loss_points": [
+    {
+      "step": 1,
+      "train_loss": 8.1775
+    },
+    {
+      "step": 10,
+      "train_loss": 8.1357
+    },
+    {
+      "step": 20,
+      "train_loss": 8.0469
+    },
+    {
+      "step": 30,
+      "train_loss": 7.818
+    },
+    {
+      "step": 40,
+      "train_loss": 7.6358
+    },
+    {
+      "step": 50,
+      "train_loss": 7.566
+    }
+  ],
+  "elapsed_train_sec": 1.734,
+  "before_text": "이 영화는 이해 고공 별 역시 나오 야 사�구. 그 해서 OO 가슴받더니 혼잡�때언립 철 한공포 나온보는 현실뭔틱 따",
+  "after_text": "이 영화는는는는는는는을는는는이\n\n는는는이을는을는이는는을는는는는이",
+  "generated_token_ids": [
+    272,
+    272,
+    272,
+    272,
+    272,
+    272,
+    318,
+    272,
+    272,
+    272,
+    267,
+    14,
+    14,
+    272,
+    272,
+    272,
+    267,
+    318,
+    272,
+    318,
+    272,
+    267,
+    272,
+    272,
+    318,
+    272,
+    272,
+    272,
+    272,
+    267
+  ],
+  "unique_generated_token_count": 4,
+  "top_generated_tokens": [
+    {
+      "token_id": 272,
+      "count": 20,
+      "decoded": "는"
+    },
+    {
+      "token_id": 318,
+      "count": 4,
+      "decoded": "을"
+    },
+    {
+      "token_id": 267,
+      "count": 4,
+      "decoded": "이"
+    },
+    {
+      "token_id": 14,
+      "count": 2,
+      "decoded": "\n"
+    }
+  ],
+  "figure_path": "figures/basic_generation_token_freq.png"
+}

@@ -200,7 +200,7 @@
 | train loss | Light 100-step 기준 7.8385 -> 7.0092, Basic 50-step 기준 8.1775 -> 7.5693 |
 | validation loss | Light 100-step 기준 7.7681 -> 7.0063, Basic 50-step 기준 8.1748 -> 7.5192 |
 | 손실 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png`, `figures/basic_train_val_loss.png` |
-| 생성 샘플 | Light generation smoke 기준 `"이 영화는"` prompt 사용 |
+| 생성 샘플 | Light/Basic generation smoke 기준 `"이 영화는"` prompt 사용 |
 | checkpoint 경로 | `checkpoints/light_step20.pt` (`.gitignore` 대상) |
 
 ### 6.3 Light 100-step 학습 테스트
@@ -314,6 +314,30 @@
 | 학습/평가 소요 시간 | 로컬 CPU 기준 약 2.175초 |
 | 결과 요약 | train loss 8.1775 -> 7.5693, validation loss 8.1748 -> 7.5192 |
 | 그래프 | `GRAPHS.md`, `figures/basic_train_val_loss.png` |
+
+### 6.8 Basic Generation Smoke 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | Basic 50-step 학습 후 `generate()`와 tokenizer `decode()` 경로가 정상 동작하는지 확인 |
+| prompt | `이 영화는` |
+| 생성 방식 | greedy decoding (`temperature=0`, `max_new_tokens=30`) |
+| prompt token 수 | 2 |
+| 생성 token 수 | 30 |
+| train corpus | `data/nsmc_lm_train.txt` 전체 1,379,486자 |
+| train token 수 | 805,023 |
+| vocab_size | 3,000 |
+| context_length | 128 |
+| batch_size | 4 |
+| corpus encode 시간 | 로컬 CPU 기준 약 263.694초 |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 1.734초 |
+| 50-step train loss | 8.1775 -> 7.5660 |
+| 학습 전 생성 샘플 | `이 영화는 이해 고공 별 역시 나오 야 사�구. 그 해서 OO 가슴받더니 혼잡�때언립 철 한공포 나온보는 현실뭔틱 따` |
+| 50-step 학습 후 생성 샘플 | `이 영화는는는는는는는을는는는이\n\n는는는이을는을는이는는을는는는는이` |
+| 생성 token 다양성 | unique token 4개 |
+| 최빈 생성 token | token id 272 (`는`), 20회 |
+| 결과 해석 | 50-step만 학습한 Basic 모델은 생성 경로는 동작하지만 greedy 생성에서 조사 token 중심의 반복 현상이 나타남 |
+| 그래프 | `GRAPHS.md`, `figures/basic_generation_token_freq.png` |
 
 ---
 

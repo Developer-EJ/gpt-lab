@@ -49,3 +49,11 @@
 - 요약: Basic 설정에서 train loss는 8.1775에서 7.5693으로, validation loss는 8.1748에서 7.5192로 감소했습니다.
 
 ![Basic 50-step train validation loss](figures/basic_train_val_loss.png)
+
+## Basic Generation Token Frequency
+
+- 원본 이미지: `figures/basic_generation_token_freq.png`
+- 결과 JSON: `figures/basic_generation_smoke.json`
+- 요약: 50-step 학습 후 greedy generation에서 token id 272 (`는`)가 20회 반복 생성되었습니다.
+
+![Basic generation token frequency](figures/basic_generation_token_freq.png)
