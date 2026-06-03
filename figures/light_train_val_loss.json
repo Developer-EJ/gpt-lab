@@ -1,0 +1,83 @@
+{
+  "experiment": "Light 100-step train/validation loss",
+  "train_chars": 500000,
+  "val_chars": 120000,
+  "train_token_count": 326967,
+  "val_token_count": 78479,
+  "vocab_size": 2000,
+  "context_length": 64,
+  "batch_size": 8,
+  "val_batches_eval": 10,
+  "model_config": {
+    "vocab_size": 2000,
+    "context_length": 64,
+    "emb_dim": 128,
+    "n_heads": 4,
+    "n_layers": 2,
+    "drop_rate": 0.1,
+    "qkv_bias": false
+  },
+  "loss_points": [
+    {
+      "step": 1,
+      "train_loss": 7.8385,
+      "val_loss": 7.7681
+    },
+    {
+      "step": 10,
+      "train_loss": 7.7101,
+      "val_loss": 7.7212
+    },
+    {
+      "step": 20,
+      "train_loss": 7.6361,
+      "val_loss": 7.6491
+    },
+    {
+      "step": 30,
+      "train_loss": 7.5482,
+      "val_loss": 7.5379
+    },
+    {
+      "step": 40,
+      "train_loss": 7.369,
+      "val_loss": 7.3891
+    },
+    {
+      "step": 50,
+      "train_loss": 7.2728,
+      "val_loss": 7.254
+    },
+    {
+      "step": 60,
+      "train_loss": 7.1747,
+      "val_loss": 7.1568
+    },
+    {
+      "step": 70,
+      "train_loss": 7.0544,
+      "val_loss": 7.091
+    },
+    {
+      "step": 80,
+      "train_loss": 7.0532,
+      "val_loss": 7.0493
+    },
+    {
+      "step": 90,
+      "train_loss": 7.006,
+      "val_loss": 7.022
+    },
+    {
+      "step": 100,
+      "train_loss": 7.0178,
+      "val_loss": 7.0063
+    }
+  ],
+  "first_train_loss": 7.8385,
+  "last_train_loss": 7.0178,
+  "first_val_loss": 7.7681,
+  "last_val_loss": 7.0063,
+  "elapsed_sec": 3.593,
+  "figure_path": "figures/light_train_val_loss.png"
+}

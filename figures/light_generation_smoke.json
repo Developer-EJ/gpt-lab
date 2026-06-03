@@ -1,0 +1,22 @@
+{
+  "experiment": "Light generation smoke",
+  "prompt": "이 영화는",
+  "max_new_tokens": 30,
+  "temperature": 0,
+  "top_k": null,
+  "prompt_token_count": 2,
+  "before_token_count": 32,
+  "after_token_count": 32,
+  "generated_new_token_count": 30,
+  "unique_generated_token_count": 1,
+  "top_generated_token_ids": [
+    [
+      267,
+      30
+    ]
+  ],
+  "before_text": "이 영화는 중��같은에도 기대 나온� 그저이 영화에;;\n렸 �g 연이라O 치O 안� 행D 함께� 분 �지않�겟\n이런",
+  "after_text": "이 영화는이이이이이이이이이이이이이이이이이이이이이이이이이이이이이이",
+  "elapsed_train_sec": 2.435,
+  "figure_path": "figures/light_generation_token_freq.png"
+}

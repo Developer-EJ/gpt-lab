@@ -162,9 +162,9 @@
 | --- | --- |
 | train loss | 100-step 기준 7.8385 -> 7.0092 |
 | validation loss | 미실행 |
-| 손실 그래프 | 그래프 또는 파일 경로 |
-| 생성 샘플 | 같은 시작 문맥으로 epoch별 비교 |
-| checkpoint 경로 | (예: `checkpoints/ckpt_epoch_5.pt`) |
+| 손실 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png` |
+| 생성 샘플 | Light generation smoke 기준 `"이 영화는"` prompt 사용 |
+| checkpoint 경로 | `checkpoints/light_step20.pt` (`.gitignore` 대상) |
 
 ### 6.3 Light 100-step 학습 테스트
 
@@ -189,6 +189,66 @@
 | DataLoader batch 수 | 639 |
 | 소요 시간 | 로컬 CPU 기준 약 2.425초 |
 | 결과 요약 | 100 step 동안 train loss가 7.8385에서 7.0092로 감소 |
+
+### 6.4 Light 100-step Train/Validation Loss 테스트
+
+| step | train loss | validation loss |
+| --- | ---: | ---: |
+| 1 | 7.8385 | 7.7681 |
+| 10 | 7.7101 | 7.7212 |
+| 20 | 7.6361 | 7.6491 |
+| 30 | 7.5482 | 7.5379 |
+| 40 | 7.3690 | 7.3891 |
+| 50 | 7.2728 | 7.2540 |
+| 60 | 7.1747 | 7.1568 |
+| 70 | 7.0544 | 7.0910 |
+| 80 | 7.0532 | 7.0493 |
+| 90 | 7.0060 | 7.0220 |
+| 100 | 7.0178 | 7.0063 |
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | Light 설정에서 train loss와 validation loss가 함께 감소하는지 확인 |
+| train corpus | `data/nsmc_lm_train.txt` 앞 500,000자 |
+| validation corpus | `data/nsmc_lm_val.txt` 앞 120,000자 |
+| train token 수 | 326,967 |
+| validation token 수 | 78,479 |
+| validation 평가 범위 | 매 기록 시점마다 10 batch 평균 |
+| 소요 시간 | 로컬 CPU 기준 약 3.593초 |
+| 결과 요약 | train loss 7.8385 -> 7.0178, validation loss 7.7681 -> 7.0063 |
+| 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png` |
+
+### 6.5 Light Generation Smoke 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | 학습 전/후 `generate()`와 tokenizer `decode()` 경로가 정상 동작하는지 확인 |
+| prompt | `이 영화는` |
+| 생성 방식 | greedy decoding (`temperature=0`, `max_new_tokens=30`) |
+| prompt token 수 | 2 |
+| 생성 token 수 | 30 |
+| 학습 전 생성 샘플 | `이 영화는 중��같은에도 기대 나온� 그저이 영화에;;` ... |
+| 100-step 학습 후 생성 샘플 | `이 영화는이이이이이이이이이이이이이이이이이이이이이이이이이이이이이이` |
+| 생성 token 다양성 | unique token 1개 |
+| 최빈 생성 token | token id 267, 30회 |
+| 결과 해석 | 100-step만 학습한 모델은 생성 경로는 동작하지만 greedy 생성에서 같은 token을 반복하는 퇴화 현상이 나타남 |
+| 그래프 | `GRAPHS.md`, `figures/light_generation_token_freq.png` |
+
+### 6.6 Checkpoint Save/Load Smoke 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | `save_checkpoint()`와 `load_checkpoint()`가 model/optimizer/epoch/global_step을 정상 복원하는지 확인 |
+| checkpoint 경로 | `checkpoints/light_step20.pt` |
+| 학습 step | 20 |
+| 복원 epoch | 0 |
+| 복원 global_step | 20 |
+| 저장 직전 loss | 7.626362 |
+| 복원 후 loss | 7.626362 |
+| loss 차이 | 0.0 |
+| 최대 parameter 차이 | 0.0 |
+| 소요 시간 | 로컬 CPU 기준 약 0.665초 |
+| 그래프 | `GRAPHS.md`, `figures/light_checkpoint_loss.png` |
 
 ---
 
