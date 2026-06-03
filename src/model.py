@@ -115,7 +115,29 @@ class GPTModel(nn.Module):
         super().__init__()
         self.config = config
         # TODO: embedding, blocks, final layernorm, lm_head를 정의하세요.
-        raise NotImplementedError("GPTModel.__init__을 구현하세요.")
+        # token id와 position 정보를 Transformer가 처리할 수 있는 vector로 바꿉니다.
+        self.embedding = InputEmbedding(
+            vocab_size=config["vocab_size"],
+            emb_dim=config["emb_dim"],
+            context_length=config["context_length"],
+            drop_rate=config["drop_rate"],
+        )
+        # 같은 구조의 TransformerBlock을 n_layers개 쌓아 문맥 정보를 처리합니다.
+        self.blocks = nn.Sequential(
+            *[
+                TransformerBlock(
+                    d_model=config["emb_dim"],
+                    n_heads=config["n_heads"],
+                    drop_rate=config["drop_rate"],
+                    qkv_bias=config["qkv_bias"],
+                )
+                for _ in range(config["n_layers"])
+            ]
+        )
+        # 모든 block을 지난 뒤 마지막으로 hidden vector의 스케일을 정리합니다.
+        self.final_norm = LayerNorm(config["emb_dim"])
+        # 각 위치의 hidden vector를 vocab_size 차원의 다음 토큰 점수로 바꿉니다.
+        self.lm_head = nn.Linear(config["emb_dim"], config["vocab_size"], bias=False)
 
     def forward(
         self,
@@ -129,7 +151,20 @@ class GPTModel(nn.Module):
             targets가 None이면 logits
             targets가 있으면 (loss, logits)
         """
-        raise NotImplementedError("GPTModel.forward를 구현하세요.")
+        # token id 입력을 embedding vector 시퀀스로 변환합니다.
+        x = self.embedding(idx)
+        # TransformerBlock들이 이전 token 문맥을 반영한 표현으로 갱신합니다.
+        x = self.blocks(x)
+        # 출력 직전 LayerNorm으로 hidden state를 안정화합니다.
+        x = self.final_norm(x)
+        # 각 위치마다 vocabulary 전체에 대한 다음 token 점수(logits)를 만듭니다.
+        logits = self.lm_head(x)
+
+        if targets is not None:
+            # targets loss 계산은 다음 구현 단계에서 채웁니다.
+            raise NotImplementedError("GPTModel.forward의 loss 계산을 구현하세요.")
+
+        return logits
 
 
 def generate_text_simple(
