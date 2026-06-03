@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """NSMC 감성 분류 미세 조정 과제 템플릿."""
 
+import csv
+import json
+import random
 from pathlib import Path
 
 import torch
@@ -26,7 +29,46 @@ def make_sentiment_dataset(
     반환 형식:
         [{"text": "리뷰", "label": 0 또는 1}, ...]
     """
-    raise NotImplementedError("make_sentiment_dataset을 구현하세요.")
+    def _read_nsmc_tsv(path: str | Path) -> list[dict]:
+        # NSMC TSV에서 리뷰 본문(document)과 정답(label)만 표준 dict 형태로 추출합니다.
+        rows = []
+        with open(Path(path), "r", encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f, delimiter="\t")
+            for row in reader:
+                text = row.get("document", "")
+                label = row.get("label", "")
+                # 빈 리뷰는 tokenizer와 모델 입력으로 쓰기 어렵기 때문에 제외합니다.
+                if text is None or text.strip() == "":
+                    continue
+                rows.append({"text": text, "label": int(label)})
+        return rows
+
+    train_rows = _read_nsmc_tsv(train_tsv_path)
+    # seed를 고정한 shuffle로 매번 같은 train/validation split을 만들 수 있게 합니다.
+    rng = random.Random(seed)
+    rng.shuffle(train_rows)
+
+    # train 파일 일부를 validation으로 떼어내고, 나머지를 train으로 사용합니다.
+    val_size = int(len(train_rows) * val_ratio)
+    val_data = train_rows[:val_size]
+    train_data = train_rows[val_size:]
+
+    # test 파일이 있으면 같은 형식으로 읽고, 없으면 빈 리스트를 반환합니다.
+    test_data = _read_nsmc_tsv(test_tsv_path) if test_tsv_path is not None else []
+
+    if output_dir is not None:
+        # 전처리 결과를 재사용할 수 있도록 선택적으로 JSON 파일로 저장합니다.
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        for name, data in (
+            ("train.json", train_data),
+            ("val.json", val_data),
+            ("test.json", test_data),
+        ):
+            with open(output_path / name, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+    return train_data, val_data, test_data
 
 
 class ReviewSentimentDataset(Dataset):
@@ -39,17 +81,35 @@ class ReviewSentimentDataset(Dataset):
         max_length: int = 128,
         pad_id: int | None = None,
     ):
+        # make_sentiment_dataset이 만든 {"text", "label"} 형식의 데이터를 보관합니다.
         self.data = data
+        # __getitem__에서 리뷰 문자열을 token id로 바꿀 tokenizer를 보관합니다.
         self.tokenizer = tokenizer
+        # 모든 샘플을 같은 길이로 맞추기 위한 최대 token 길이입니다.
         self.max_length = max_length
+        # pad_id가 직접 주어지지 않으면 tokenizer의 padding ID를 사용합니다.
         self.pad_id = tokenizer.get_pad_id() if pad_id is None else pad_id
 
     def __len__(self) -> int:
+        # DataLoader가 전체 샘플 개수를 알 수 있도록 원본 데이터 길이를 반환합니다.
         return len(self.data)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
         """TODO: text를 encode하고 max_length까지 자르거나 padding한 뒤 label과 함께 반환합니다."""
-        raise NotImplementedError("ReviewSentimentDataset.__getitem__을 구현하세요.")
+        # idx번째 리뷰와 정답 label을 꺼냅니다.
+        item = self.data[idx]
+        # 리뷰 문자열을 모델 입력으로 사용할 token id 리스트로 변환합니다.
+        token_ids = self.tokenizer.encode(item["text"])
+
+        # 너무 긴 리뷰는 max_length까지만 사용합니다.
+        token_ids = token_ids[: self.max_length]
+        if len(token_ids) < self.max_length:
+            # 짧은 리뷰는 batch로 묶을 수 있도록 pad_id로 길이를 맞춥니다.
+            token_ids += [self.pad_id] * (self.max_length - len(token_ids))
+
+        # embedding layer가 받을 수 있도록 token id를 long tensor로 반환합니다.
+        input_ids = torch.tensor(token_ids, dtype=torch.long)
+        return input_ids, int(item["label"])
 
 
 class GPTForSequenceClassification(nn.Module):
