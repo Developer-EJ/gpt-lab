@@ -119,6 +119,7 @@ class GPTModel(nn.Module):
         self,
         idx: torch.Tensor,
         targets: torch.Tensor | None = None,
+        return_hidden: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """
         TODO: logits를 만들고, targets가 있으면 cross entropy loss도 함께 반환합니다.
@@ -126,10 +127,16 @@ class GPTModel(nn.Module):
         Returns:
             targets가 None이면 logits
             targets가 있으면 (loss, logits)
+            return_hidden=True이면 lm_head 이전 hidden state 반환
         """
         x = self.embedding(idx)
         x = self.blocks(x)
         x = self.ln_f(x)
+
+        # 분류 fine-tuning 시 hidden state를 직접 사용할 수 있도록
+        if return_hidden:
+            return x
+
         logits = self.lm_head(x)
 
         if targets is None:
