@@ -4,6 +4,7 @@
 import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 try:
     from .attention import MultiHeadAttention
@@ -160,10 +161,16 @@ class GPTModel(nn.Module):
         # 각 위치마다 vocabulary 전체에 대한 다음 token 점수(logits)를 만듭니다.
         logits = self.lm_head(x)
 
+        # targets가 있으면 학습 모드처럼 정답 token과 비교해 loss를 함께 계산합니다.
         if targets is not None:
-            # targets loss 계산은 다음 구현 단계에서 채웁니다.
-            raise NotImplementedError("GPTModel.forward의 loss 계산을 구현하세요.")
+            # cross entropy는 (N, C) logits와 (N,) target 형태를 기대하므로 토큰 위치를 펼칩니다.
+            loss = F.cross_entropy(
+                logits.view(-1, logits.shape[-1]),
+                targets.view(-1),
+            )
+            return loss, logits
 
+        # 추론이나 생성에서는 loss 없이 logits만 사용합니다.
         return logits
 
 
