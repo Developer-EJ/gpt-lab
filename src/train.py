@@ -33,7 +33,31 @@ def calc_loss_loader(
     num_batches: int | None = None,
 ) -> float:
     """TODO: data_loader의 평균 loss를 계산합니다. 검증에서는 torch.no_grad()를 사용하세요."""
-    raise NotImplementedError("calc_loss_loader를 구현하세요.")
+    total_loss = 0.0
+    num_seen_batches = 0
+    # 호출 전 학습/평가 상태를 기억해 두었다가 마지막에 되돌립니다.
+    was_training = model.training
+
+    # loader loss는 평가 목적이므로 dropout 등을 끄고 gradient도 만들지 않습니다.
+    model.eval()
+    with torch.no_grad():
+        for batch_idx, (input_batch, target_batch) in enumerate(data_loader):
+            # num_batches가 지정되면 전체 loader 대신 앞쪽 일부 batch만 평가합니다.
+            if num_batches is not None and batch_idx >= num_batches:
+                break
+            loss = calc_loss_batch(input_batch, target_batch, model, device)
+            total_loss += loss.item()
+            num_seen_batches += 1
+
+    # 이 함수를 호출하기 전 train 모드였다면 다시 train 모드로 복구합니다.
+    if was_training:
+        model.train()
+
+    if num_seen_batches == 0:
+        return float("nan")
+
+    # batch별 loss의 산술 평균을 반환합니다.
+    return total_loss / num_seen_batches
 
 
 def save_checkpoint(
