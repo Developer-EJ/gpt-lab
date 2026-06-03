@@ -184,6 +184,45 @@ base 설정은 `vocab_size=2,000`, `context_length=64`, `emb_dim=128`, `n_layers
 | GPU/CPU 정보 | Colab 런타임에서 T4 GPU로 진행 |
 | 총 학습 소요 시간 | 각 run의 metrics / DONE 파일에서 확인 |
 
+loaded runs: 12
+- base | best val loss: 4.6755
+- basic_base_vocab2000_ctx64_emb128_layers4_epochs40 | best val loss: 4.3679
+- context_length_512 | best val loss: 5.1198
+- context_length_8 | best val loss: 4.5576
+- drop_rate_0p0 | best val loss: 4.6563
+- drop_rate_0p5 | best val loss: 4.9072
+- emb_dim_256 | best val loss: 4.5493
+- emb_dim_4 | best val loss: 6.2411
+- n_layers_1 | best val loss: 4.7601
+- n_layers_10 | best val loss: 4.5776
+- vocab_size_10000 | best val loss: 6.8866
+- vocab_size_300 | best val loss: 1.7638
+
+### 1. vocab_size 비교
+
+![vocab_size 비교 결과](image.png)
+
+### 2. Transformer layer 수 비교
+
+![Transformer layer 수 비교 결과](image-1.png)
+
+### 3. embedding dimension 비교
+
+![embedding dimension 비교 결과](image-2.png)
+
+### 4. dropout rate 비교
+
+![dropout rate 비교 결과](image-3.png)
+
+### 5. context length 비교
+
+![context length 비교 결과](image-4.png)
+
+### 6. basic base 모델 결과
+
+![basic base 모델 결과](image-5.png)
+
+
 ---
 
 ## 9. 고찰
