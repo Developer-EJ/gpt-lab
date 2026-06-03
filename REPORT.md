@@ -536,6 +536,33 @@
 | 결과 해석 | 분류용 Dataset padding, 마지막 유효 token pooling, classifier forward/loss/update/evaluate 경로가 정상 동작함 |
 | 그래프 | `GRAPHS.md`, `figures/finetune_classifier_smoke_loss.png` |
 
+### 7.2 Finetune Mini Train/Validation Curve 테스트
+
+| epoch | train loss | train accuracy | validation loss | validation accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| 0 | - | - | 0.7513 | 0.4648 |
+| 1 | 0.7590 | 0.5078 | 0.7132 | 0.4883 |
+| 2 | 0.6860 | 0.5625 | 0.7254 | 0.5312 |
+| 3 | 0.6432 | 0.6318 | 0.8946 | 0.5117 |
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | smoke보다 큰 subset에서 finetune train/validation loss와 accuracy 곡선을 확인 |
+| train sample 수 | 1,024 |
+| validation sample 수 | 256 |
+| vocab_size | 3,000 |
+| max_length | 128 |
+| batch_size | 16 |
+| epoch 수 | 3 |
+| train batch 수 | 64 |
+| validation batch 수 | 16 |
+| 모델 구조 | `emb_dim=192`, `n_heads=4`, `n_layers=2`, `drop_rate=0.1`, classifier 2-class |
+| optimizer | AdamW, lr=3e-4 |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 37.834초 |
+| 결과 요약 | train loss 0.7590 -> 0.6432, validation accuracy 0.4648 -> 0.5117 |
+| 결과 해석 | train loss와 train accuracy는 개선됐지만 validation loss가 3 epoch에서 상승해 작은 subset 기준 과적합 신호가 나타남 |
+| 그래프 | `GRAPHS.md`, `figures/finetune_mini_curve.png` |
+
 ---
 
 ## 8. 실험 환경

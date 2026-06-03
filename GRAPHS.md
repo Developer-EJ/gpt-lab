@@ -113,3 +113,11 @@
 - 요약: 1-step 업데이트 후 batch loss는 0.772232에서 0.657083으로 감소했고 validation accuracy는 0.539062였습니다.
 
 ![Finetune sentiment classifier smoke loss](figures/finetune_classifier_smoke_loss.png)
+
+## Finetune Mini Train/Validation Curve
+
+- 원본 이미지: `figures/finetune_mini_curve.png`
+- 결과 JSON: `figures/finetune_mini_curve.json`
+- 요약: 1,024개 train subset에서 train loss는 0.7590에서 0.6432로 감소했고, validation accuracy는 0.4648에서 0.5117로 변했습니다.
+
+![Finetune mini train validation curve](figures/finetune_mini_curve.png)
