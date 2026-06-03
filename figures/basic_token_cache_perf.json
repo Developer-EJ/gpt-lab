@@ -1,0 +1,42 @@
+{
+  "experiment": "Basic token ID cache performance",
+  "train_chars": 1379486,
+  "val_chars": 120560,
+  "train_token_count": 805023,
+  "val_token_count": 70388,
+  "vocab_size": 3000,
+  "cache_files": [
+    "data/basic_train_ids.pt",
+    "data/basic_val_ids.pt"
+  ],
+  "cache_file_sizes_bytes": {
+    "data/basic_train_ids.pt": 3221793,
+    "data/basic_val_ids.pt": 283219
+  },
+  "encode_sec": 280.018,
+  "save_sec": 0.04,
+  "load_secs": [
+    0.011,
+    0.011,
+    0.012
+  ],
+  "avg_load_sec": 0.011,
+  "encode_to_load_speedup": 24354.72,
+  "ids_match": true,
+  "context_length": 128,
+  "batch_size": 4,
+  "train_loader_batches": 1573,
+  "val_loader_batches": 138,
+  "batch_shape": [
+    [
+      4,
+      128
+    ],
+    [
+      4,
+      128
+    ]
+  ],
+  "dataloader_prep_sec": 0.009,
+  "figure_path": "figures/basic_token_cache_perf.png"
+}

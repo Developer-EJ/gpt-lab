@@ -65,3 +65,11 @@
 - 요약: Basic 50-step checkpoint 저장/복원에서 loss가 7.538605로 동일했고 parameter 최대 차이는 0.0이었습니다.
 
 ![Basic checkpoint save load loss](figures/basic_checkpoint_loss.png)
+
+## Basic Token ID Cache Performance
+
+- 원본 이미지: `figures/basic_token_cache_perf.png`
+- 결과 JSON: `figures/basic_token_cache_perf.json`
+- 요약: 전체 Basic BPE encode는 280.018초였고, token ID cache load는 3회 평균 0.011초였습니다.
+
+![Basic token ID cache performance](figures/basic_token_cache_perf.png)

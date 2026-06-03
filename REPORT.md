@@ -362,6 +362,30 @@
 | 결과 해석 | Basic checkpoint가 동일 loss와 동일 parameter로 복원됨 |
 | 그래프 | `GRAPHS.md`, `figures/basic_checkpoint_loss.png` |
 
+### 6.10 Basic Token ID Cache 성능 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | Basic 실험에서 반복적으로 발생하는 전체 corpus BPE encode 비용을 token ID cache로 줄일 수 있는지 확인 |
+| train corpus | `data/nsmc_lm_train.txt` 전체 1,379,486자 |
+| validation corpus | `data/nsmc_lm_val.txt` 전체 120,560자 |
+| train token 수 | 805,023 |
+| validation token 수 | 70,388 |
+| vocab_size | 3,000 |
+| cache 경로 | `data/basic_train_ids.pt`, `data/basic_val_ids.pt` (`.gitignore` 대상) |
+| cache 파일 크기 | train 약 3.2MB, validation 약 0.28MB |
+| BPE encode 시간 | 로컬 CPU 기준 약 280.018초 |
+| cache 저장 시간 | 약 0.040초 |
+| cache load 시간 | 3회 평균 약 0.011초 |
+| encode 대비 load 속도 | 약 24,354.72배 빠름 |
+| token ID 일치 여부 | 통과 |
+| DataLoader 설정 | `context_length=128`, `batch_size=4`, `stride=128` |
+| DataLoader batch 수 | train 1,573, validation 138 |
+| input/target shape | `(4, 128)` / `(4, 128)` |
+| DataLoader 준비 시간 | 약 0.009초 |
+| 결과 해석 | Basic 반복 실험에서는 BPE encode를 매번 수행하지 말고 token ID cache를 재사용하는 것이 필요함 |
+| 그래프 | `GRAPHS.md`, `figures/basic_token_cache_perf.png` |
+
 ---
 
 ## 7. 미세 조정
