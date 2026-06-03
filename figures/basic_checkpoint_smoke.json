@@ -1,0 +1,54 @@
+{
+  "experiment": "Basic checkpoint save/load smoke",
+  "train_chars": 1379486,
+  "train_token_count": 805023,
+  "encode_sec": 258.934,
+  "vocab_size": 3000,
+  "context_length": 128,
+  "batch_size": 4,
+  "model_config": {
+    "vocab_size": 3000,
+    "context_length": 128,
+    "emb_dim": 192,
+    "n_heads": 4,
+    "n_layers": 2,
+    "drop_rate": 0.1,
+    "qkv_bias": false
+  },
+  "loss_points": [
+    {
+      "step": 1,
+      "train_loss": 8.1775
+    },
+    {
+      "step": 10,
+      "train_loss": 8.1357
+    },
+    {
+      "step": 20,
+      "train_loss": 8.0469
+    },
+    {
+      "step": 30,
+      "train_loss": 7.818
+    },
+    {
+      "step": 40,
+      "train_loss": 7.6358
+    },
+    {
+      "step": 50,
+      "train_loss": 7.566
+    }
+  ],
+  "elapsed_train_sec": 2.0,
+  "checkpoint_path": "checkpoints/basic_step50.pt",
+  "checkpoint_exists": true,
+  "loaded_epoch": 0,
+  "loaded_global_step": 50,
+  "loss_before_save": 7.538605,
+  "loss_after_load": 7.538605,
+  "loss_diff": 0.0,
+  "max_param_diff": 0.0,
+  "figure_path": "figures/basic_checkpoint_loss.png"
+}

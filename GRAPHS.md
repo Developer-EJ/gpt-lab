@@ -57,3 +57,11 @@
 - 요약: 50-step 학습 후 greedy generation에서 token id 272 (`는`)가 20회 반복 생성되었습니다.
 
 ![Basic generation token frequency](figures/basic_generation_token_freq.png)
+
+## Basic Checkpoint Save/Load Loss
+
+- 원본 이미지: `figures/basic_checkpoint_loss.png`
+- 결과 JSON: `figures/basic_checkpoint_smoke.json`
+- 요약: Basic 50-step checkpoint 저장/복원에서 loss가 7.538605로 동일했고 parameter 최대 차이는 0.0이었습니다.
+
+![Basic checkpoint save load loss](figures/basic_checkpoint_loss.png)

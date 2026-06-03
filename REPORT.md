@@ -201,7 +201,7 @@
 | validation loss | Light 100-step 기준 7.7681 -> 7.0063, Basic 50-step 기준 8.1748 -> 7.5192 |
 | 손실 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png`, `figures/basic_train_val_loss.png` |
 | 생성 샘플 | Light/Basic generation smoke 기준 `"이 영화는"` prompt 사용 |
-| checkpoint 경로 | `checkpoints/light_step20.pt` (`.gitignore` 대상) |
+| checkpoint 경로 | `checkpoints/light_step20.pt`, `checkpoints/basic_step50.pt` (`.gitignore` 대상) |
 
 ### 6.3 Light 100-step 학습 테스트
 
@@ -338,6 +338,29 @@
 | 최빈 생성 token | token id 272 (`는`), 20회 |
 | 결과 해석 | 50-step만 학습한 Basic 모델은 생성 경로는 동작하지만 greedy 생성에서 조사 token 중심의 반복 현상이 나타남 |
 | 그래프 | `GRAPHS.md`, `figures/basic_generation_token_freq.png` |
+
+### 6.9 Basic Checkpoint Save/Load Smoke 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | Basic 50-step 학습 후 checkpoint 저장/복원이 model/optimizer/epoch/global_step을 정상 복원하는지 확인 |
+| train corpus | `data/nsmc_lm_train.txt` 전체 1,379,486자 |
+| train token 수 | 805,023 |
+| vocab_size | 3,000 |
+| context_length | 128 |
+| batch_size | 4 |
+| checkpoint 경로 | `checkpoints/basic_step50.pt` |
+| 학습 step | 50 |
+| 복원 epoch | 0 |
+| 복원 global_step | 50 |
+| 저장 직전 loss | 7.538605 |
+| 복원 후 loss | 7.538605 |
+| loss 차이 | 0.0 |
+| 최대 parameter 차이 | 0.0 |
+| corpus encode 시간 | 로컬 CPU 기준 약 258.934초 |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 2.000초 |
+| 결과 해석 | Basic checkpoint가 동일 loss와 동일 parameter로 복원됨 |
+| 그래프 | `GRAPHS.md`, `figures/basic_checkpoint_loss.png` |
 
 ---
 
