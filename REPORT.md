@@ -44,6 +44,19 @@
 
 ---
 
+## 2.1 테스트 진행률
+
+| 구분 | 진행률 | 완료 내용 | 남은 내용 |
+| --- | ---: | --- | --- |
+| 단위 테스트 | 100% | 로컬/Colab pytest 28개 통과 | 최종 제출 전 재실행 |
+| BPE 검증 | 100% | Smoke, Light, Basic 시간 측정, batch smoke | 없음 |
+| 사전 학습 smoke | 90% | Light/Basic loss, generation, sampling, checkpoint, resume, token cache | 더 긴 Colab 학습 선택 사항 |
+| 미세 조정 smoke | 75% | classifier smoke, mini train/validation curve, mini test confusion matrix | full finetune Colab 학습, 전체 test 평가 |
+| 보고서/그래프 | 85% | `REPORT.md`, `GRAPHS.md`, 실험별 JSON/PNG 기록 | 최종 요약/고찰 정리 |
+| 전체 진행률 | 약 82% | 로컬 중심 smoke/mini 검증 대부분 완료 | 긴 finetune Colab 검증과 최종 재검증 |
+
+---
+
 ## 3. 데이터
 
 | 항목 | 내용 |
@@ -562,6 +575,27 @@
 | 결과 요약 | train loss 0.7590 -> 0.6432, validation accuracy 0.4648 -> 0.5117 |
 | 결과 해석 | train loss와 train accuracy는 개선됐지만 validation loss가 3 epoch에서 상승해 작은 subset 기준 과적합 신호가 나타남 |
 | 그래프 | `GRAPHS.md`, `figures/finetune_mini_curve.png` |
+
+### 7.3 Finetune Mini Test Confusion Matrix 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | finetune mini 모델을 test subset에서 평가하고 예측 편향을 confusion matrix로 확인 |
+| train sample 수 | 1,024 |
+| validation sample 수 | 256 |
+| test sample 수 | 256 |
+| vocab_size | 3,000 |
+| max_length | 128 |
+| batch_size | 16 |
+| epoch 수 | 3 |
+| test loss | 0.864738 |
+| test accuracy | 0.531250 |
+| confusion matrix | `[[4, 117], [3, 132]]` |
+| negative class accuracy | 0.033058 |
+| positive class accuracy | 0.977778 |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 40.658초 |
+| 결과 해석 | 전체 accuracy는 0.531250이지만 positive class로 치우친 예측이 강하게 나타남. full finetune에서는 class balance와 validation 기준 early stopping이 필요함 |
+| 그래프 | `GRAPHS.md`, `figures/finetune_mini_test_confusion.png` |
 
 ---
 

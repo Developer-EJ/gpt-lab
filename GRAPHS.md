@@ -121,3 +121,11 @@
 - 요약: 1,024개 train subset에서 train loss는 0.7590에서 0.6432로 감소했고, validation accuracy는 0.4648에서 0.5117로 변했습니다.
 
 ![Finetune mini train validation curve](figures/finetune_mini_curve.png)
+
+## Finetune Mini Test Confusion Matrix
+
+- 원본 이미지: `figures/finetune_mini_test_confusion.png`
+- 결과 JSON: `figures/finetune_mini_test_confusion.json`
+- 요약: test subset accuracy는 0.531250이었고, confusion matrix는 `[[4, 117], [3, 132]]`로 positive class 예측 쏠림이 나타났습니다.
+
+![Finetune mini test confusion matrix](figures/finetune_mini_test_confusion.png)
