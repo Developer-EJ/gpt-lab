@@ -69,7 +69,10 @@ class BPETokenizer:
     """ 코퍼스에서 BPE merge rule과 vocabulary를 학습 """
 
     def train(self, corpus: str):
-        # 1. 특수 토큰 초기화 + 코퍼스 전체를 byte ID로 전환
+        # 1. 이전 학습 상태 초기화 후 특수 토큰 등록
+        self.id_to_token = {}
+        self.token_to_id = {}
+        self.merges = []
         self._init_special_tokens()
         ids = [BYTE_OFFSET + byte for byte in corpus.encode("utf-8")]
 
@@ -86,6 +89,8 @@ class BPETokenizer:
 
             # 3. 가장 빈도 높은 쌍 선택
             best_pair = max(pair_counts, key=lambda p: pair_counts[p])
+            if pair_counts[best_pair] < 2:
+                break
 
             # 4. 새 토큰 등록
             new_id = len(self.id_to_token)
@@ -126,7 +131,7 @@ class BPETokenizer:
         merges = [list(pair) for pair in self.merges]
 
         with open(path, "w", encoding="utf-8") as f:
-            json.dump({"vocab": vocab, "merges": merges}, f)
+            json.dump({"vocab_size": self.vocab_size, "id_to_token": vocab, "merges": merges}, f)
 
     # 저장된 JSON를 읽어서 vocab과 merges를 복원
     # 입력 : 파일 경로
@@ -138,10 +143,11 @@ class BPETokenizer:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
+        self.vocab_size = data["vocab_size"]
         self.id_to_token = {}
         self.token_to_id = {}
 
-        for id_str, entry in data["vocab"].items():
+        for id_str, entry in data["id_to_token"].items():
             id = int(id_str)
             if entry["type"] == "bytes":
                 token = bytes(entry["value"])
@@ -157,6 +163,8 @@ class BPETokenizer:
     """ 문자열을 token ID 리스트로 변환 """
 
     def encode(self, text: str, add_bos_eos: bool = False) -> list[int]:
+        if not self.id_to_token:
+            self._init_special_tokens()
         # 1. text를 byte ID로 전환
         byte_ids = [BYTE_OFFSET + byte for byte in text.encode("utf-8")]
 
