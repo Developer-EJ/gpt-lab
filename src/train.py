@@ -193,7 +193,65 @@ def train_model(
     global_step: int = 0,
 ) -> list[float]:
     """TODO: 사전 학습 루프를 구현하고 epoch별 train loss 리스트를 반환합니다."""
-    raise NotImplementedError("train_model을 구현하세요.")
+    train_losses = []
+    val_losses = []
+    # 모델과 batch tensor가 같은 장치에서 계산되도록 모델을 device로 이동합니다.
+    model.to(device)
+
+    # start_epoch를 받으면 checkpoint 이후 학습을 이어서 진행할 수 있습니다.
+    for epoch in range(start_epoch, start_epoch + num_epochs):
+        model.train()
+        epoch_loss = 0.0
+        num_batches = 0
+
+        for input_batch, target_batch in train_loader:
+            # 한 batch에 대해 loss를 계산하고 역전파로 파라미터를 갱신합니다.
+            optimizer.zero_grad()
+            loss = calc_loss_batch(input_batch, target_batch, model, device)
+            loss.backward()
+            optimizer.step()
+
+            # epoch 평균 loss와 전체 step 수를 기록합니다.
+            epoch_loss += loss.item()
+            num_batches += 1
+            global_step += 1
+
+            if eval_freq > 0 and global_step % eval_freq == 0:
+                # 일정 step마다 train/val loader 일부를 사용해 현재 loss를 점검합니다.
+                train_loss = calc_loss_loader(train_loader, model, device, num_batches=eval_iter)
+                val_loss = calc_loss_loader(val_loader, model, device, num_batches=eval_iter)
+                val_losses.append(val_loss)
+                print(
+                    f"Epoch {epoch + 1}, Step {global_step}: "
+                    f"train loss {train_loss:.3f}, val loss {val_loss:.3f}"
+                )
+
+            if ckpt_freq is not None and ckpt_freq > 0 and global_step % ckpt_freq == 0:
+                # 지정한 간격마다 학습 재개에 필요한 checkpoint를 저장합니다.
+                save_checkpoint(
+                    model,
+                    optimizer,
+                    epoch=epoch,
+                    global_step=global_step,
+                    path=f"checkpoint_step_{global_step}.pt",
+                )
+
+        # epoch 하나가 끝나면 그 epoch의 평균 train loss를 저장합니다.
+        avg_epoch_loss = epoch_loss / num_batches if num_batches > 0 else float("nan")
+        train_losses.append(avg_epoch_loss)
+
+        if tokenizer is not None and start_context:
+            # 학습 중간 결과를 사람이 읽을 수 있도록 샘플 텍스트를 생성해 출력합니다.
+            generate_and_print_sample(
+                model,
+                tokenizer,
+                device,
+                start_context,
+                context_size=model.config["context_length"],
+            )
+
+    # 호출자는 반환된 epoch별 loss 리스트로 학습 추이를 그릴 수 있습니다.
+    return train_losses
 
 
 def plot_losses(train_losses: list[float], val_losses: list[float] | None = None) -> None:
