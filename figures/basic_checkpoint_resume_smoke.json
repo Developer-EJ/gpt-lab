@@ -1,0 +1,81 @@
+{
+  "experiment": "Basic checkpoint resume consistency",
+  "cache_files": [
+    "data/basic_train_ids.pt",
+    "data/basic_val_ids.pt"
+  ],
+  "cache_load_sec": 0.014,
+  "train_token_count": 805023,
+  "val_token_count": 70388,
+  "vocab_size": 3000,
+  "context_length": 128,
+  "batch_size": 4,
+  "train_loader_batches": 1573,
+  "val_loader_batches": 138,
+  "used_shuffle": false,
+  "model_config": {
+    "vocab_size": 3000,
+    "context_length": 128,
+    "emb_dim": 192,
+    "n_heads": 4,
+    "n_layers": 2,
+    "drop_rate": 0.1,
+    "qkv_bias": false
+  },
+  "checkpoint_path": "checkpoints/basic_resume_step100.pt",
+  "loaded_epoch": 0,
+  "loaded_global_step": 100,
+  "continuous_points": [
+    {
+      "step": 1,
+      "train_loss": 8.1675
+    },
+    {
+      "step": 50,
+      "train_loss": 7.4971
+    },
+    {
+      "step": 100,
+      "train_loss": 7.4023
+    },
+    {
+      "step": 110,
+      "train_loss": 7.2995
+    },
+    {
+      "step": 120,
+      "train_loss": 7.2706
+    }
+  ],
+  "resume_points": [
+    {
+      "step": 1,
+      "train_loss": 8.1651
+    },
+    {
+      "step": 50,
+      "train_loss": 7.4923
+    },
+    {
+      "step": 100,
+      "train_loss": 7.4006
+    },
+    {
+      "step": 110,
+      "train_loss": 7.3053
+    },
+    {
+      "step": 120,
+      "train_loss": 7.2711
+    }
+  ],
+  "continuous_train_sec": 3.961,
+  "resume_train_sec": 3.862,
+  "continuous_val_loss_120": 7.32583,
+  "resume_val_loss_120": 7.326025,
+  "fixed_batch_loss_continuous_120": 7.260343,
+  "fixed_batch_loss_resume_120": 7.26429,
+  "fixed_batch_loss_diff": 0.003947257996,
+  "max_param_diff": 0.02643661201,
+  "figure_path": "figures/basic_checkpoint_resume_loss.png"
+}

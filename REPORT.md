@@ -470,6 +470,32 @@
 | 결과 해석 | sampling을 적용하면 문장 품질은 아직 낮지만 단일 token 반복은 크게 줄고 token 다양성이 증가함 |
 | 그래프 | `GRAPHS.md`, `figures/basic_cached_100step_sampling_token_freq.png` |
 
+### 6.14 Basic Checkpoint Resume 학습 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | 100-step checkpoint 저장 후 로드해서 120-step까지 이어 학습되는지 확인 |
+| 비교 방식 | 120-step 연속 학습 vs 100-step 저장/복원 후 20-step 추가 학습 |
+| cache 경로 | `data/basic_train_ids.pt`, `data/basic_val_ids.pt` (`.gitignore` 대상) |
+| checkpoint 경로 | `checkpoints/basic_resume_step100.pt` (`.gitignore` 대상) |
+| cache load 시간 | 약 0.014초 |
+| train token 수 | 805,023 |
+| validation token 수 | 70,388 |
+| vocab_size | 3,000 |
+| context_length | 128 |
+| batch_size | 4 |
+| DataLoader shuffle | `False` |
+| 복원 epoch | 0 |
+| 복원 global_step | 100 |
+| 연속 학습 120-step train loss | 7.2706 |
+| resume 학습 120-step train loss | 7.2711 |
+| 연속 학습 validation loss | 7.325830 |
+| resume 학습 validation loss | 7.326025 |
+| 120-step fixed batch loss 차이 | 약 0.003947 |
+| 최대 parameter 차이 | 약 0.026437 |
+| 결과 해석 | checkpoint에서 model/optimizer/global_step은 복원되어 이어 학습된다. 다만 dropout RNG 상태를 checkpoint에 저장하지 않아 연속 학습과 bit-exact하게 같지는 않다 |
+| 그래프 | `GRAPHS.md`, `figures/basic_checkpoint_resume_loss.png` |
+
 ---
 
 ## 7. 미세 조정
