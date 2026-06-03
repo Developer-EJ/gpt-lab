@@ -41,3 +41,11 @@
 - 요약: Basic tokenizer와 `context_length=128`, `batch_size=4` 설정에서 input/target batch shape가 모두 `(4, 128)`로 생성되었습니다.
 
 ![Basic batch smoke shapes](figures/basic_batch_shapes.png)
+
+## Basic 50-step Train/Validation Loss
+
+- 원본 이미지: `figures/basic_train_val_loss.png`
+- 결과 JSON: `figures/basic_train_val_loss.json`
+- 요약: Basic 설정에서 train loss는 8.1775에서 7.5693으로, validation loss는 8.1748에서 7.5192로 감소했습니다.
+
+![Basic 50-step train validation loss](figures/basic_train_val_loss.png)

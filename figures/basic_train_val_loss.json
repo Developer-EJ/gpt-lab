@@ -1,0 +1,59 @@
+{
+  "experiment": "Basic 50-step train/validation loss",
+  "train_chars": 1379486,
+  "val_chars": 120560,
+  "train_token_count": 805023,
+  "val_token_count": 70388,
+  "encode_sec": 296.009,
+  "vocab_size": 3000,
+  "context_length": 128,
+  "batch_size": 4,
+  "val_batches_eval": 5,
+  "model_config": {
+    "vocab_size": 3000,
+    "context_length": 128,
+    "emb_dim": 192,
+    "n_heads": 4,
+    "n_layers": 2,
+    "drop_rate": 0.1,
+    "qkv_bias": false
+  },
+  "loss_points": [
+    {
+      "step": 1,
+      "train_loss": 8.1775,
+      "val_loss": 8.1748
+    },
+    {
+      "step": 10,
+      "train_loss": 8.1324,
+      "val_loss": 8.1223
+    },
+    {
+      "step": 20,
+      "train_loss": 8.0404,
+      "val_loss": 8.0285
+    },
+    {
+      "step": 30,
+      "train_loss": 7.8272,
+      "val_loss": 7.8575
+    },
+    {
+      "step": 40,
+      "train_loss": 7.6451,
+      "val_loss": 7.6538
+    },
+    {
+      "step": 50,
+      "train_loss": 7.5693,
+      "val_loss": 7.5192
+    }
+  ],
+  "first_train_loss": 8.1775,
+  "last_train_loss": 7.5693,
+  "first_val_loss": 8.1748,
+  "last_val_loss": 7.5192,
+  "elapsed_train_sec": 2.175,
+  "figure_path": "figures/basic_train_val_loss.png"
+}

@@ -197,9 +197,9 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| train loss | 100-step 기준 7.8385 -> 7.0092 |
-| validation loss | 미실행 |
-| 손실 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png` |
+| train loss | Light 100-step 기준 7.8385 -> 7.0092, Basic 50-step 기준 8.1775 -> 7.5693 |
+| validation loss | Light 100-step 기준 7.7681 -> 7.0063, Basic 50-step 기준 8.1748 -> 7.5192 |
+| 손실 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png`, `figures/basic_train_val_loss.png` |
 | 생성 샘플 | Light generation smoke 기준 `"이 영화는"` prompt 사용 |
 | checkpoint 경로 | `checkpoints/light_step20.pt` (`.gitignore` 대상) |
 
@@ -286,6 +286,34 @@
 | 최대 parameter 차이 | 0.0 |
 | 소요 시간 | 로컬 CPU 기준 약 0.665초 |
 | 그래프 | `GRAPHS.md`, `figures/light_checkpoint_loss.png` |
+
+### 6.7 Basic 50-step Train/Validation Loss 테스트
+
+| step | train loss | validation loss |
+| --- | ---: | ---: |
+| 1 | 8.1775 | 8.1748 |
+| 10 | 8.1324 | 8.1223 |
+| 20 | 8.0404 | 8.0285 |
+| 30 | 7.8272 | 7.8575 |
+| 40 | 7.6451 | 7.6538 |
+| 50 | 7.5693 | 7.5192 |
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | Basic 설정에서 짧은 학습 루프가 train/validation loss를 함께 낮추는지 확인 |
+| train corpus | `data/nsmc_lm_train.txt` 전체 1,379,486자 |
+| validation corpus | `data/nsmc_lm_val.txt` 전체 120,560자 |
+| train token 수 | 805,023 |
+| validation token 수 | 70,388 |
+| vocab_size | 3,000 |
+| context_length | 128 |
+| batch_size | 4 |
+| 모델 구조 | `emb_dim=192`, `n_heads=4`, `n_layers=2`, `drop_rate=0.1` |
+| validation 평가 범위 | 매 기록 시점마다 5 batch 평균 |
+| corpus encode 시간 | 로컬 CPU 기준 약 296.009초 |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 2.175초 |
+| 결과 요약 | train loss 8.1775 -> 7.5693, validation loss 8.1748 -> 7.5192 |
+| 그래프 | `GRAPHS.md`, `figures/basic_train_val_loss.png` |
 
 ---
 
