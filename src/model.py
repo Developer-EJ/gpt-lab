@@ -17,14 +17,21 @@ class LayerNorm(nn.Module):
 
     def __init__(self, normalized_shape: int, eps: float = 1e-5):
         super().__init__()
-        self.gamma = nn.Parameter(torch.ones(normalized_shape))
-        self.beta = nn.Parameter(torch.zeros(normalized_shape))
-        self.eps = eps
+        self.gamma = nn.Parameter(torch.ones(normalized_shape)) # 초기값 1
+        self.beta = nn.Parameter(torch.zeros(normalized_shape)) # 초기값 0
+        self.eps = eps # 0으로 나누기 방지 (1e-5)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: 마지막 차원의 평균과 분산으로 정규화한 뒤 gamma/beta를 적용합니다."""
-        raise NotImplementedError("LayerNorm.forward를 구현하세요.")
-
+        # 각 토큰의 hidden vector(d_model) 안에서만 평균을 구합니다.
+        # batch나 sequence 길이가 아니라 마지막 차원만 정규화 대상입니다.
+        x_mean = x.mean(dim=-1, keepdim=True)
+        # LayerNorm은 현재 벡터 자체를 정규화하므로 표본 보정 없이 분산을 계산합니다.
+        x_var = x.var(dim=-1, keepdim=True, unbiased=False)
+        # eps는 분산이 0에 가까울 때 나눗셈이 불안정해지는 것을 막습니다.
+        x_norm = (x - x_mean) / (x_var + self.eps).sqrt()
+        # 정규화한 값에 학습 가능한 scale(gamma)과 shift(beta)를 적용합니다.
+        return self.gamma * x_norm + self.beta
 
 class GELU(nn.Module):
     """GPT FeedForward에서 사용하는 GELU 활성화 함수."""
