@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """GPT 모델 구성 요소 과제 템플릿."""
 
+import math
 import torch
 import torch.nn as nn
 
@@ -38,7 +39,9 @@ class GELU(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: tanh 근사식 또는 torch 연산으로 GELU를 구현합니다."""
-        raise NotImplementedError("GELU.forward를 구현하세요.")
+        # GELU는 입력을 0/1로 딱 자르지 않고, 값의 크기에 따라 부드럽게 통과시킵니다.
+        # 아래 식은 GPT 계열에서 자주 쓰는 tanh 기반 GELU 근사식이며 입력 shape는 그대로 유지됩니다.
+        return 0.5 * x * (1 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * x**3)))
 
 
 class FeedForward(nn.Module):
