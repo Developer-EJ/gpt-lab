@@ -17,7 +17,13 @@ def calc_loss_batch(
     device: torch.device,
 ) -> torch.Tensor:
     """TODO: 한 배치를 device로 옮긴 뒤 다음 토큰 예측 cross entropy loss를 계산합니다."""
-    raise NotImplementedError("calc_loss_batch를 구현하세요.")
+    # 모델과 같은 장치에서 계산되도록 입력과 정답 batch를 이동합니다.
+    input_batch = input_batch.to(device)
+    target_batch = target_batch.to(device)
+    # GPTModel은 targets가 있으면 내부에서 cross entropy loss를 함께 반환합니다.
+    loss, _ = model(input_batch, targets=target_batch)
+    # 학습 루프에서는 logits보다 loss가 필요하므로 loss만 돌려줍니다.
+    return loss
 
 
 def calc_loss_loader(
