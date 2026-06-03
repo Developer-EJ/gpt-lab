@@ -73,3 +73,11 @@
 - 요약: 전체 Basic BPE encode는 280.018초였고, token ID cache load는 3회 평균 0.011초였습니다.
 
 ![Basic token ID cache performance](figures/basic_token_cache_perf.png)
+
+## Cached Basic 100-step Train/Validation Loss
+
+- 원본 이미지: `figures/basic_cached_100step_loss.png`
+- 결과 JSON: `figures/basic_cached_100step_loss.json`
+- 요약: token ID cache를 사용한 Basic 100-step에서 train loss는 8.1775에서 7.3897로, validation loss는 8.1748에서 7.3425로 감소했습니다.
+
+![Cached Basic 100-step train validation loss](figures/basic_cached_100step_loss.png)

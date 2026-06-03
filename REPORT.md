@@ -197,9 +197,9 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| train loss | Light 100-step 기준 7.8385 -> 7.0092, Basic 50-step 기준 8.1775 -> 7.5693 |
-| validation loss | Light 100-step 기준 7.7681 -> 7.0063, Basic 50-step 기준 8.1748 -> 7.5192 |
-| 손실 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png`, `figures/basic_train_val_loss.png` |
+| train loss | Light 100-step 기준 7.8385 -> 7.0092, Basic cached 100-step 기준 8.1775 -> 7.3897 |
+| validation loss | Light 100-step 기준 7.7681 -> 7.0063, Basic cached 100-step 기준 8.1748 -> 7.3425 |
+| 손실 그래프 | `GRAPHS.md`, `figures/light_train_val_loss.png`, `figures/basic_train_val_loss.png`, `figures/basic_cached_100step_loss.png` |
 | 생성 샘플 | Light/Basic generation smoke 기준 `"이 영화는"` prompt 사용 |
 | checkpoint 경로 | `checkpoints/light_step20.pt`, `checkpoints/basic_step50.pt` (`.gitignore` 대상) |
 
@@ -385,6 +385,40 @@
 | DataLoader 준비 시간 | 약 0.009초 |
 | 결과 해석 | Basic 반복 실험에서는 BPE encode를 매번 수행하지 말고 token ID cache를 재사용하는 것이 필요함 |
 | 그래프 | `GRAPHS.md`, `figures/basic_token_cache_perf.png` |
+
+### 6.11 Cached Basic 100-step Train/Validation Loss 테스트
+
+| step | train loss | validation loss |
+| --- | ---: | ---: |
+| 1 | 8.1775 | 8.1748 |
+| 10 | 8.1324 | 8.1223 |
+| 20 | 8.0404 | 8.0285 |
+| 30 | 7.8272 | 7.8575 |
+| 40 | 7.6451 | 7.6538 |
+| 50 | 7.5693 | 7.5192 |
+| 60 | 7.4051 | 7.4374 |
+| 70 | 7.2755 | 7.3899 |
+| 80 | 7.3511 | 7.3631 |
+| 90 | 7.3978 | 7.3501 |
+| 100 | 7.3897 | 7.3425 |
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | token ID cache를 사용해 Basic 설정에서 100-step train/validation loss 감소를 빠르게 확인 |
+| cache 경로 | `data/basic_train_ids.pt`, `data/basic_val_ids.pt` (`.gitignore` 대상) |
+| cache load 시간 | 약 0.016초 |
+| train token 수 | 805,023 |
+| validation token 수 | 70,388 |
+| vocab_size | 3,000 |
+| context_length | 128 |
+| batch_size | 4 |
+| DataLoader batch 수 | train 1,573, validation 138 |
+| validation 평가 범위 | 매 기록 시점마다 5 batch 평균 |
+| 모델 구조 | `emb_dim=192`, `n_heads=4`, `n_layers=2`, `drop_rate=0.1` |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 3.881초 |
+| 결과 요약 | train loss 8.1775 -> 7.3897, validation loss 8.1748 -> 7.3425 |
+| 결과 해석 | cache 사용으로 준비 시간이 크게 줄었고, 100-step까지 validation loss가 계속 완만하게 감소함 |
+| 그래프 | `GRAPHS.md`, `figures/basic_cached_100step_loss.png` |
 
 ---
 
