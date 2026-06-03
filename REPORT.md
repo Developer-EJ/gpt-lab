@@ -505,13 +505,36 @@
 | 구현 파일 | `src/finetune.py` |
 | 과제 | NSMC 리뷰 긍정/부정 분류 |
 | 데이터 포맷 | JSONL, `text`, `label` |
-| max_length | (예: 128) |
-| batch_size | (예: 16) |
-| backbone learning rate |  |
-| classifier learning rate |  |
-| validation loss / accuracy |  |
-| test loss / accuracy |  |
-| 오류 예시 | 틀린 리뷰 예시와 추정 원인 |
+| max_length | 128 |
+| batch_size | Smoke 기준 8 |
+| backbone learning rate | Smoke 기준 AdamW lr=3e-4 |
+| classifier learning rate | Smoke 기준 AdamW lr=3e-4 |
+| validation loss / accuracy | Smoke 기준 0.760974 / 0.539062 |
+| test loss / accuracy | 본 학습 후 측정 예정 |
+| 오류 예시 | 본 학습 후 틀린 리뷰 예시 분석 예정 |
+
+### 7.1 Finetune Sentiment Classifier Smoke 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | 감성 분류 Dataset, DataLoader, GPT backbone, classification head, loss/accuracy 계산 경로 확인 |
+| train sample 수 | 128 |
+| validation sample 수 | 128 |
+| vocab_size | 3,000 |
+| max_length | 128 |
+| batch_size | 8 |
+| input shape | `(8, 128)` |
+| label shape | `(8)` |
+| logits shape | `(8, 2)` |
+| 모델 구조 | `emb_dim=192`, `n_heads=4`, `n_layers=2`, `drop_rate=0.1`, classifier 2-class |
+| optimizer | AdamW, lr=3e-4 |
+| batch loss 전 | 0.772232 |
+| batch loss 1-step 후 | 0.657083 |
+| batch accuracy 전/후 | 0.625 / 0.625 |
+| validation loss 1-step 후 | 0.760974 |
+| validation accuracy 1-step 후 | 0.539062 |
+| 결과 해석 | 분류용 Dataset padding, 마지막 유효 token pooling, classifier forward/loss/update/evaluate 경로가 정상 동작함 |
+| 그래프 | `GRAPHS.md`, `figures/finetune_classifier_smoke_loss.png` |
 
 ---
 

@@ -105,3 +105,11 @@
 - 요약: 100-step checkpoint를 로드해 120-step까지 이어 학습했고, resume 120-step train loss는 7.2711로 연속 학습 7.2706과 매우 근접했습니다.
 
 ![Basic checkpoint resume consistency](figures/basic_checkpoint_resume_loss.png)
+
+## Finetune Sentiment Classifier Smoke Loss
+
+- 원본 이미지: `figures/finetune_classifier_smoke_loss.png`
+- 결과 JSON: `figures/finetune_classifier_smoke.json`
+- 요약: 1-step 업데이트 후 batch loss는 0.772232에서 0.657083으로 감소했고 validation accuracy는 0.539062였습니다.
+
+![Finetune sentiment classifier smoke loss](figures/finetune_classifier_smoke_loss.png)
