@@ -445,6 +445,31 @@
 | 결과 해석 | 100-step 학습 후에도 생성 경로는 동작하지만 greedy 생성은 단일 token 반복으로 퇴화함 |
 | 그래프 | `GRAPHS.md`, `figures/basic_cached_100step_generation_token_freq.png` |
 
+### 6.13 Cached Basic 100-step Sampling Generation Smoke 테스트
+
+| 항목 | 내용 |
+| --- | --- |
+| 실행 목적 | greedy decoding 반복 문제를 sampling 설정으로 완화할 수 있는지 확인 |
+| prompt | `이 영화는` |
+| 비교 생성 방식 | greedy (`temperature=0`) vs sampling (`temperature=0.8`, `top_k=40`, seed 123) |
+| 생성 token 수 | 각 30 |
+| cache 경로 | `data/basic_train_ids.pt` (`.gitignore` 대상) |
+| cache load 시간 | 약 0.015초 |
+| train token 수 | 805,023 |
+| vocab_size | 3,000 |
+| context_length | 128 |
+| batch_size | 4 |
+| 학습/평가 소요 시간 | 로컬 CPU 기준 약 3.514초 |
+| 100-step train loss | 8.1775 -> 7.4030 |
+| greedy 생성 샘플 | `이 영화는이이이이이이이이이이이이이이이이이이이이이이이이이이이이이이` |
+| sampling 생성 샘플 | `이 영화는하한가고을고을지고의이.에.리기을나나로는자고는다\n라리만기리` |
+| greedy token 다양성 | unique token 1개 |
+| sampling token 다양성 | unique token 19개 |
+| greedy 최빈 token | token id 267 (`이`), 30회 |
+| sampling 최빈 token | token id 277 (`고`), 4회 |
+| 결과 해석 | sampling을 적용하면 문장 품질은 아직 낮지만 단일 token 반복은 크게 줄고 token 다양성이 증가함 |
+| 그래프 | `GRAPHS.md`, `figures/basic_cached_100step_sampling_token_freq.png` |
+
 ---
 
 ## 7. 미세 조정

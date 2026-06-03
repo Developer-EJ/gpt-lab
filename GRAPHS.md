@@ -89,3 +89,11 @@
 - 요약: 100-step 학습 후 greedy generation에서 token id 267 (`이`)가 30회 반복 생성되었습니다.
 
 ![Cached Basic 100-step generation token frequency](figures/basic_cached_100step_generation_token_freq.png)
+
+## Cached Basic 100-step Greedy vs Sampling Token Frequency
+
+- 원본 이미지: `figures/basic_cached_100step_sampling_token_freq.png`
+- 결과 JSON: `figures/basic_cached_100step_sampling_smoke.json`
+- 요약: greedy는 unique token 1개였고, `temperature=0.8`, `top_k=40` sampling은 unique token 19개였습니다.
+
+![Cached Basic 100-step greedy vs sampling token frequency](figures/basic_cached_100step_sampling_token_freq.png)
