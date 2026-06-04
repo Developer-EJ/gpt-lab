@@ -134,13 +134,15 @@ base 설정은 `vocab_size=2,000`, `context_length=64`, `emb_dim=128`, `n_layers
 
 | 변경 항목 | 비교 값 |
 | --- | --- |
-| learning_rate | 1e-4, 3e-4, 5e-4 |
-| batch_size | 4, 8, 16 |
+| learning_rate | 3e-4 |
+| batch_size | 8 |
 | drop_rate | 0.0, 0.1, 0.5 |
 | context_length | 8, 64, 512 |
 | emb_dim | 4, 128, 256 |
 | n_heads | 4 |
 | n_layers | 1, 4, 10 |
+| epoch | 20 |
+
 
 ### 6.3 결과 확인 방식
 
